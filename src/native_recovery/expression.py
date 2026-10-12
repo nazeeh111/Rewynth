@@ -1,8 +1,8 @@
-"""A bounded, editable expression language for 32-bit recovered functions.
+"""A bounded, editable expression language for 32- or 64-bit recovered functions.
 
 Python's parser is used only to obtain syntax nodes. No expression is evaluated,
 imported, or executed. The resulting JSON tree uses the recovery core's schema.
-Arithmetic wraps modulo 2**32; shift counts are masked to five bits. ``lt`` and
+Arithmetic wraps modulo 2**word_bits; shift counts are masked to that width. ``lt`` and
 ``gt`` are signed comparisons, ``ult`` and ``ugt`` unsigned. ``asr`` sign-fills.
 ``reverse(value, width)`` reverses the lowest width bits into the same low range.
 Programs may define prior-only t0..t31 bindings before their final expression.
@@ -55,12 +55,80 @@ _CALLS = {
 }
 _COMPARISONS = {"slt", "sgt", "ult", "ugt", "eq"}
 _ARITHMETIC = set(_OPERATOR) | {"ashr"}
-_C_RESERVED = set(
-    "auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while _Alignas _Alignof _Atomic _Bool _Complex _Generic _Imaginary _Noreturn _Static_assert _Thread_local".split()
-)
+_C_RESERVED = {
+    "auto",
+    "break",
+    "case",
+    "char",
+    "const",
+    "continue",
+    "default",
+    "do",
+    "double",
+    "else",
+    "enum",
+    "extern",
+    "float",
+    "for",
+    "goto",
+    "if",
+    "inline",
+    "int",
+    "long",
+    "register",
+    "restrict",
+    "return",
+    "short",
+    "signed",
+    "sizeof",
+    "static",
+    "struct",
+    "switch",
+    "typedef",
+    "union",
+    "unsigned",
+    "void",
+    "volatile",
+    "while",
+    "_Alignas",
+    "_Alignof",
+    "_Atomic",
+    "_Bool",
+    "_Complex",
+    "_Generic",
+    "_Imaginary",
+    "_Noreturn",
+    "_Static_assert",
+    "_Thread_local",
+}
 # Names introduced by the generated translation unit's public standard headers.
 _C_RESERVED.update(
-    "bool true false intptr_t uintptr_t intmax_t uintmax_t INTPTR_MIN INTPTR_MAX UINTPTR_MAX INTMAX_MIN INTMAX_MAX UINTMAX_MAX PTRDIFF_MIN PTRDIFF_MAX SIG_ATOMIC_MIN SIG_ATOMIC_MAX SIZE_MAX WCHAR_MIN WCHAR_MAX WINT_MIN WINT_MAX INTMAX_C UINTMAX_C".split()
+    [
+        "bool",
+        "true",
+        "false",
+        "intptr_t",
+        "uintptr_t",
+        "intmax_t",
+        "uintmax_t",
+        "INTPTR_MIN",
+        "INTPTR_MAX",
+        "UINTPTR_MAX",
+        "INTMAX_MIN",
+        "INTMAX_MAX",
+        "UINTMAX_MAX",
+        "PTRDIFF_MIN",
+        "PTRDIFF_MAX",
+        "SIG_ATOMIC_MIN",
+        "SIG_ATOMIC_MAX",
+        "SIZE_MAX",
+        "WCHAR_MIN",
+        "WCHAR_MAX",
+        "WINT_MIN",
+        "WINT_MAX",
+        "INTMAX_C",
+        "UINTMAX_C",
+    ]
 )
 for _width in (8, 16, 32, 64):
     for _family in ("", "least", "fast"):
@@ -81,8 +149,16 @@ def _error(message: str) -> None:
     raise ExpressionError(message)
 
 
-def _check_ast(node: dict) -> str:
-    """Validate complete shape and types, including untrusted JSON AST inputs."""
+def _word_mask(word_bits: int) -> int:
+    if type(word_bits) is not int or word_bits not in (32, 64):
+        _error("word_bits must be the integer 32 or 64")
+    return (1 << word_bits) - 1
+
+
+def validate_ast(node: dict, *, word_bits: int = 32) -> str:
+    """Validate the bounded JSON AST, returning u32/u64 or bool for its type."""
+    mask = _word_mask(word_bits)
+    word_kind = f"u{word_bits}"
     count = 0
 
     def visit(current, depth):
@@ -104,52 +180,58 @@ def _check_ast(node: dict) -> str:
                 or not 0 <= current["index"] <= 3
             ):
                 _error("input must name x0, x1, x2, or x3")
-            return "u32"
+            return word_kind
         if op == "const":
             if (
                 set(current) != {"op", "value"}
                 or type(current["value"]) is not int
-                or not 0 <= current["value"] <= MASK
+                or not 0 <= current["value"] <= mask
             ):
-                _error("constants must fit unsigned 32-bit integers")
-            return "u32"
+                _error(f"constants must fit unsigned {word_bits}-bit integers")
+            return word_kind
         if op in _ARITHMETIC | _COMPARISONS:
             if set(current) != {"op", "a", "b"}:
                 _error(f"{op} requires exactly two operands")
             if (
-                visit(current["a"], depth + 1) != "u32"
-                or visit(current["b"], depth + 1) != "u32"
+                visit(current["a"], depth + 1) != word_kind
+                or visit(current["b"], depth + 1) != word_kind
             ):
                 _error(f"{op} requires integer operands")
-            return "bool" if op in _COMPARISONS else "u32"
+            return "bool" if op in _COMPARISONS else word_kind
         if op == "ite":
             if set(current) != {"op", "condition", "then", "else"}:
                 _error("ifelse requires condition, then, and else operands")
             if visit(current["condition"], depth + 1) != "bool":
                 _error("conditional AST requires a Boolean comparison")
             if (
-                visit(current["then"], depth + 1) != "u32"
-                or visit(current["else"], depth + 1) != "u32"
+                visit(current["then"], depth + 1) != word_kind
+                or visit(current["else"], depth + 1) != word_kind
             ):
                 _error("ifelse branches must be integers")
-            return "u32"
+            return word_kind
         if op == "reverse":
             if (
                 set(current) != {"op", "arg", "width"}
                 or type(current["width"]) is not int
-                or not 1 <= current["width"] <= 32
+                or not 1 <= current["width"] <= word_bits
             ):
-                _error("reverse width must be an integer from 1 to 32")
-            if visit(current["arg"], depth + 1) != "u32":
+                _error(f"reverse width must be an integer from 1 to {word_bits}")
+            if visit(current["arg"], depth + 1) != word_kind:
                 _error("reverse requires an integer operand")
-            return "u32"
+            return word_kind
         _error(f"unknown expression operation: {op!r}")
 
     return visit(node, 1)
 
 
-def parse_expression(text: str) -> dict:
-    """Translate a safe expression or binding program into the bounded core AST."""
+def _check_ast(node: dict, *, word_bits: int = 32) -> str:
+    return validate_ast(node, word_bits=word_bits)
+
+
+def parse_expression(text: str, *, word_bits: int = 32) -> dict:
+    """Translate safe source into an AST with explicit modulo-word semantics."""
+    mask = _word_mask(word_bits)
+    word_kind = f"u{word_bits}"
     if not isinstance(text, str):
         _error("expression source must be text")
     try:
@@ -171,7 +253,7 @@ def parse_expression(text: str) -> dict:
         if isinstance(current, ast.expr):
             syntax_count += 1
             if syntax_count > MAX_NODES * 4:
-                _error(f"expression exceeds the bounded syntax budget")
+                _error("expression exceeds the bounded syntax budget")
 
     bindings = {}
 
@@ -179,30 +261,30 @@ def parse_expression(text: str) -> dict:
         if depth > MAX_DEPTH:
             _error(f"expression exceeds depth {MAX_DEPTH}")
         if isinstance(node, ast.Constant):
-            if type(node.value) is not int or not 0 <= node.value <= MASK:
-                _error("constants must fit unsigned 32-bit integers")
-            return {"op": "const", "value": node.value}, "u32"
+            if type(node.value) is not int or not 0 <= node.value <= mask:
+                _error(f"constants must fit unsigned {word_bits}-bit integers")
+            return {"op": "const", "value": node.value}, word_kind
         if isinstance(node, ast.Name):
             if node.id in bindings:
                 return bindings[node.id]
             if node.id not in ("x0", "x1", "x2", "x3"):
                 _error(f"unknown input name: {node.id}")
-            return {"op": "input", "index": int(node.id[1])}, "u32"
+            return {"op": "input", "index": int(node.id[1])}, word_kind
         if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
             child, kind = convert(node.operand, depth + 1)
-            if kind != "u32":
+            if kind != word_kind:
                 _error("unary signs require an integer operand")
             if isinstance(node.op, ast.UAdd):
                 return child, kind
             if child["op"] == "const":
-                return {"op": "const", "value": (-child["value"]) & MASK}, kind
+                return {"op": "const", "value": (-child["value"]) & mask}, kind
             return {"op": "sub", "a": {"op": "const", "value": 0}, "b": child}, kind
         if isinstance(node, ast.BinOp) and type(node.op) in _BINARY:
             a, ak = convert(node.left, depth + 1)
             b, bk = convert(node.right, depth + 1)
-            if ak != "u32" or bk != "u32":
+            if ak != word_kind or bk != word_kind:
                 _error("arithmetic and bit operations require integer operands")
-            return {"op": _BINARY[type(node.op)], "a": a, "b": b}, "u32"
+            return {"op": _BINARY[type(node.op)], "a": a, "b": b}, word_kind
         if isinstance(node, ast.Call):
             if not isinstance(node.func, ast.Name) or node.keywords:
                 _error(
@@ -214,23 +296,23 @@ def parse_expression(text: str) -> dict:
                     _error(f"{name} requires exactly two operands")
                 a, ak = convert(node.args[0], depth + 1)
                 b, bk = convert(node.args[1], depth + 1)
-                if ak != "u32" or bk != "u32":
+                if ak != word_kind or bk != word_kind:
                     _error(f"{name} requires integer operands")
                 op = _CALLS[name]
                 return {
                     "op": op,
                     "a": a,
                     "b": b,
-                }, "bool" if op in _COMPARISONS else "u32"
+                }, "bool" if op in _COMPARISONS else word_kind
             if name == "ifelse":
                 if len(node.args) != 3:
                     _error("ifelse requires exactly three operands")
                 condition, ck = convert(node.args[0], depth + 1)
                 yes, yk = convert(node.args[1], depth + 1)
                 no, nk = convert(node.args[2], depth + 1)
-                if yk != "u32" or nk != "u32":
+                if yk != word_kind or nk != word_kind:
                     _error("ifelse branches must be integers")
-                if ck == "u32":
+                if ck == word_kind:
                     condition = {
                         "op": "ugt",
                         "a": condition,
@@ -241,20 +323,22 @@ def parse_expression(text: str) -> dict:
                     "condition": condition,
                     "then": yes,
                     "else": no,
-                }, "u32"
+                }, word_kind
             if name == "reverse":
                 if len(node.args) != 2:
                     _error("reverse requires exactly two operands")
                 arg, kind = convert(node.args[0], depth + 1)
                 width = node.args[1]
                 if (
-                    kind != "u32"
+                    kind != word_kind
                     or not isinstance(width, ast.Constant)
                     or type(width.value) is not int
-                    or not 1 <= width.value <= 32
+                    or not 1 <= width.value <= word_bits
                 ):
-                    _error("reverse width must be a literal integer from 1 to 32")
-                return {"op": "reverse", "arg": arg, "width": width.value}, "u32"
+                    _error(
+                        f"reverse width must be a literal integer from 1 to {word_bits}"
+                    )
+                return {"op": "reverse", "arg": arg, "width": width.value}, word_kind
             _error(f"unknown function: {name}")
         _error(f"unsupported syntax: {type(node).__name__}")
 
@@ -275,10 +359,10 @@ def parse_expression(text: str) -> dict:
         if name in bindings:
             _error(f"binding {name} cannot be reassigned")
         value, kind = convert(statement.value)
-        _check_ast(value)
+        validate_ast(value, word_bits=word_bits)
         bindings[name] = (value, kind)
     result, _ = convert(parsed.body[-1].value)
-    _check_ast(result)
+    validate_ast(result, word_bits=word_bits)
     return result
 
 
@@ -303,14 +387,15 @@ def _structural_key(node):
     return (op, node["width"], *children) if op == "reverse" else (op, *children)
 
 
-def format_expression(node: dict) -> str:
+def format_expression(node: dict, *, word_bits: int = 32) -> str:
     """Return compact safe source with deterministic prior-only named bindings.
 
     Repeated nonleaf subtrees are structurally shared, independent of Python
     object identity. At most 32 useful bindings are emitted in dependency order.
     The expanded result still obeys the original AST node and depth budgets.
     """
-    _check_ast(node)
+    validate_ast(node, word_bits=word_bits)
+    hex_digits = word_bits // 4
     counts, records, sizes, order = {}, {}, {}, []
 
     def inspect(current):
@@ -363,7 +448,7 @@ def format_expression(node: dict) -> str:
             return f"x{current['index']}"
         if op == "const":
             value = current["value"]
-            return str(value) if value <= 0xFFFF else f"0x{value:08x}"
+            return str(value) if value <= 0xFFFF else f"0x{value:0{hex_digits}x}"
         if op in _OPERATOR:
             return f"({render(current['a'])} {_OPERATOR[op]} {render(current['b'])})"
         if op == "ashr":
@@ -390,15 +475,25 @@ def format_expression(node: dict) -> str:
 
 
 def emit_c(
-    node: dict, function_name: str = "recovered", argument_count: int = 3
+    node: dict,
+    function_name: str = "recovered",
+    argument_count: int = 3,
+    *,
+    word_bits: int = 32,
 ) -> str:
-    """Emit standalone defined C99 uint32_t code, without arbitrary code insertion.
+    """Emit defined C99 uint32_t/uint64_t code without arbitrary code insertion.
 
     Each distinct nonleaf node gets one temporary to bound source expansion. No division,
     signed overflow, implementation-defined unsigned-to-signed cast, or shift
-    outside 0..31 is emitted. Comparison temporaries use bool; results use u32.
+    outside 0..word_bits-1 is emitted. Comparison temporaries use bool.
     """
-    _check_ast(node)
+    validate_ast(node, word_bits=word_bits)
+    word_type = f"uint{word_bits}_t"
+    word_literal = f"UINT{word_bits}_C"
+    word_max = f"UINT{word_bits}_MAX"
+    hex_digits = word_bits // 4
+    sign_literal = f"0x{1 << (word_bits - 1):0{hex_digits}x}"
+    shift_mask = word_bits - 1
     if (
         not isinstance(function_name, str)
         or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", function_name)
@@ -425,7 +520,7 @@ def emit_c(
                 )
             return f"x{current['index']}"
         if op == "const":
-            return f"UINT32_C(0x{current['value']:08x})"
+            return f"{word_literal}(0x{current['value']:0{hex_digits}x})"
         if op == "ite":
             condition = generate(current["condition"])
             yes, no = generate(current["then"]), generate(current["else"])
@@ -435,12 +530,12 @@ def emit_c(
             name = f"nr_{count}"
             count += 1
             loop = f"nr_i{count}"
-            body.append(f"    uint32_t {name} = UINT32_C(0);")
+            body.append(f"    {word_type} {name} = {word_literal}(0);")
             body.append(
-                f"    for (uint32_t {loop} = 0; {loop} < UINT32_C({current['width']}); ++{loop}) {{"
+                f"    for (uint32_t {loop} = 0; {loop} < {word_literal}({current['width']}); ++{loop}) {{"
             )
             body.append(
-                f"        {name} = (uint32_t)(({name} << 1) | (({value} >> {loop}) & UINT32_C(1)));"
+                f"        {name} = ({word_type})(({name} << 1) | (({value} >> {loop}) & {word_literal}(1)));"
             )
             body.append("    }")
             generated[key] = name
@@ -452,29 +547,29 @@ def emit_c(
             elif op == "mul":
                 expression = f"(uint64_t){a} * (uint64_t){b}"
             elif op in ("lshr", "shl"):
-                expression = f"{a} {_OPERATOR[op]} ({b} & UINT32_C(31))"
+                expression = f"{a} {_OPERATOR[op]} ({b} & {word_literal}({shift_mask}))"
             elif op == "ashr":
-                shift = f"({b} & UINT32_C(31))"
-                expression = f"({a} >> {shift}) | ((UINT32_C(0) - ({a} >> 31)) & ~(UINT32_MAX >> {shift}))"
+                shift = f"({b} & {word_literal}({shift_mask}))"
+                expression = f"({a} >> {shift}) | (({word_literal}(0) - ({a} >> {shift_mask})) & ~({word_max} >> {shift}))"
             elif op in ("slt", "sgt"):
                 symbol = "<" if op == "slt" else ">"
-                expression = f"({a} ^ UINT32_C(0x80000000)) {symbol} ({b} ^ UINT32_C(0x80000000))"
+                expression = f"({a} ^ {word_literal}({sign_literal})) {symbol} ({b} ^ {word_literal}({sign_literal}))"
             elif op in ("ult", "ugt", "eq"):
                 expression = f"{a} { {'ult': '<', 'ugt': '>', 'eq': '=='}[op] } {b}"
             else:
                 raise AssertionError(op)
         name = f"nr_{count}"
         count += 1
-        ctype = "bool" if op in _COMPARISONS else "uint32_t"
-        cast = "" if ctype == "bool" else "(uint32_t)"
+        ctype = "bool" if op in _COMPARISONS else word_type
+        cast = "" if ctype == "bool" else f"({word_type})"
         body.append(f"    {ctype} {name} = {cast}({expression});")
         generated[key] = name
         return name
 
     output = generate(node)
-    signature = ", ".join(f"uint32_t x{i}" for i in range(argument_count)) or "void"
-    lines.append(f"uint32_t {function_name}({signature}) {{")
+    signature = ", ".join(f"{word_type} x{i}" for i in range(argument_count)) or "void"
+    lines.append(f"{word_type} {function_name}({signature}) {{")
     lines.extend(body)
-    lines.append(f"    return (uint32_t)({output});")
+    lines.append(f"    return ({word_type})({output});")
     lines.append("}")
     return "\n".join(lines) + "\n"

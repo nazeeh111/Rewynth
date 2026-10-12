@@ -1,0 +1,243 @@
+{
+  "isa_artifact_sha256": "10b2f625faea0360b88707b118cfdef6b1ef51edbb8b83065b1cc527cf09a5c9",
+  "isa_cases": [
+    {
+      "symbol": "wide_add_shift",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_shift63",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_movk48",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_add_carry",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_add_overflow",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_sub_carry",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_sub_signed",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_logic_flags",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_flags",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_cmp",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_zeroext",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_movk",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_rotate",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_arithmetic",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_x_variable_shift",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_x_rotate",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_ubfx_high",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_bfxil_high",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_bfxil_full",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_bfi_high",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_bfi_one",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_w_bfi",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_rbit",
+      "native_assertions": 481
+    },
+    {
+      "symbol": "wide_linear",
+      "native_assertions": 481
+    }
+  ],
+  "isa_native_assertions": 11544,
+  "mixer_function_sha256": "7c82d5fb046adc4fb9c2415e191d66c05f139deed5a061a65a268c83ba0dc713",
+  "generated_source_sha256": "34c351dd9e15c2de2aec1fe654f40386b9b42b9cd29f4219402d925f2fbe90a4",
+  "generated_artifact_sha256": "c7fc93d095f41ce6d8b6db9e8d530fc59a16c455d76420ad617f387375cce8d8",
+  "native_mixer_assertions": 6045,
+  "inverse_proofs": {
+    "chain_binding": {
+      "status": "unsat"
+    },
+    "local_two_sided": [
+      {
+        "step": 0,
+        "primitive": {
+          "op": "add",
+          "constant_u64": 11400714819323198485
+        },
+        "forward_after_inverse": {
+          "status": "unsat"
+        },
+        "inverse_after_forward": {
+          "status": "unsat"
+        }
+      },
+      {
+        "step": 1,
+        "primitive": {
+          "op": "xor_right",
+          "amount": 30
+        },
+        "forward_after_inverse": {
+          "status": "unsat"
+        },
+        "inverse_after_forward": {
+          "status": "unsat"
+        }
+      },
+      {
+        "step": 2,
+        "primitive": {
+          "op": "mul_odd",
+          "constant_u64": 13787848793156543929,
+          "inverse_constant_u64": 10871156337175269513
+        },
+        "forward_after_inverse": {
+          "status": "unsat"
+        },
+        "inverse_after_forward": {
+          "status": "unsat"
+        }
+      },
+      {
+        "step": 3,
+        "primitive": {
+          "op": "xor_right",
+          "amount": 27
+        },
+        "forward_after_inverse": {
+          "status": "unsat"
+        },
+        "inverse_after_forward": {
+          "status": "unsat"
+        }
+      },
+      {
+        "step": 4,
+        "primitive": {
+          "op": "mul_odd",
+          "constant_u64": 10723151780598845931,
+          "inverse_constant_u64": 3573116690164977347
+        },
+        "forward_after_inverse": {
+          "status": "unsat"
+        },
+        "inverse_after_forward": {
+          "status": "unsat"
+        }
+      },
+      {
+        "step": 5,
+        "primitive": {
+          "op": "xor_right",
+          "amount": 31
+        },
+        "forward_after_inverse": {
+          "status": "unsat"
+        },
+        "inverse_after_forward": {
+          "status": "unsat"
+        }
+      }
+    ],
+    "global_compositions": {
+      "forward_after_inverse": {
+        "status": "unknown",
+        "reason": "timeout"
+      },
+      "inverse_after_forward": {
+        "status": "unknown",
+        "reason": "timeout"
+      }
+    },
+    "basis": "compositional"
+  },
+  "generated_proofs": {
+    "forward": {
+      "status": "unsat",
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null
+        ],
+        "memory": "none; memory instructions rejected",
+        "calls": "none; calls rejected",
+        "loops": "none; branches rejected in this probe",
+        "proof_scope": "output equality in the implemented ISA model; not a formally verified CPU semantics"
+      }
+    },
+    "backward": {
+      "status": "unknown",
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null
+        ],
+        "memory": "none; memory instructions rejected",
+        "calls": "none; calls rejected",
+        "loops": "none; branches rejected in this probe",
+        "proof_scope": "output equality in the implemented ISA model; not a formally verified CPU semantics"
+      },
+      "reason": "timeout"
+    }
+  }
+}

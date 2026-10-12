@@ -1,0 +1,29 @@
+{
+  "artifact_sha256": "1148e2df4e459d85076c101972985d334c9660e4b279a004bbdc3cc33ac801d4",
+  "source_sha256": "d27d0427056d525d8b3f4448fc015bf7ed81a5a02e0a947d28e03d29172bb32d",
+  "compiler": "Apple Clang21.0.0 clang-2100.3.34.2",
+  "build": [
+    "clang",
+    "-O2",
+    "-dynamiclib",
+    "-fno-stack-protector",
+    "-Wl,-install_name,@rpath/wide-kernels.dylib",
+    "wide-kernels.c",
+    "-o",
+    "wide-kernels.dylib"
+  ],
+  "source": {
+    "url": "https://github.com/svaarala/duktape/blob/84131700dfd32d9d1063f99b5b0a900f5935a613/misc/splitmix64.c",
+    "sha256": "b2f892fb09d4f3364baa3324f1cbeb997a68f035c539664142619398dae2a40b",
+    "notice": "Sebastiano Vigna2015 public-domain dedication/CC0",
+    "adaptation": "Pure splitmix64_step(before_state) replaces global state with an explicit argument; untouched stateful source kept as native oracle."
+  },
+  "owned_functions": [
+    "wide_lattice",
+    "wide_permute",
+    "wide_lossy",
+    "wide_select",
+    "wide_field"
+  ],
+  "limits": "Exact full64output and knowncallposition needed for initialseedrecovery; no Raylib32-output/xoshiro/crypto recovery. Imports remain data-only."
+}

@@ -6,6 +6,7 @@ import multiprocessing as mp
 from pathlib import Path
 import sys
 from .artifacts import Artifact, MAX_ARTIFACT
+from .words import pattern
 
 
 def bounded_operation(request, code, address, name):
@@ -58,6 +59,11 @@ def main():
         action="store_true",
         help="Use the shipped compiled fixture as data",
     )
+    inspect.add_argument(
+        "--example-wide",
+        action="store_true",
+        help="Use the shipped 64-bit transform fixture as data",
+    )
     for operation in ["recover", "verify", "inverse", "evaluate", "derive_inverse"]:
         child = sub.add_parser(operation)
         child.add_argument("artifact", type=Path, nargs="?")
@@ -66,11 +72,23 @@ def main():
             action="store_true",
             help="Use the shipped compiled fixture as data",
         )
+        child.add_argument(
+            "--example-wide",
+            action="store_true",
+            help="Use the shipped 64-bit transform fixture as data",
+        )
+        child.add_argument(
+            "--word-bits",
+            type=int,
+            choices=(32, 64),
+            default=32,
+            help="Declare the argument and result width; defaults to 32",
+        )
         child.add_argument("--function", required=True)
         child.add_argument("--arguments", type=int, choices=range(1, 5), required=True)
         child.add_argument(
             "--domain",
-            help="JSON list of null or {min,max,signed} entries; omitted means all 32-bit patterns",
+            help="JSON list of null or {min,max,signed} entries; omitted means all patterns of the selected word size",
         )
         if operation == "verify":
             child.add_argument(
@@ -92,11 +110,18 @@ def main():
 
             sys.argv = ["rewynth serve", "--port", str(args.port)]
             return serve_main()
-        if bool(args.example) == bool(args.artifact):
-            raise ValueError("Select an artifact path or --example, exactly one.")
+        if sum(bool(v) for v in (args.example, args.example_wide, args.artifact)) != 1:
+            raise ValueError(
+                "Select an artifact path, --example or --example-wide, exactly one."
+            )
         selected_path = (
-            Path(__file__).parent / "resources/examples/kernels.dylib"
-            if args.example
+            Path(__file__).parent
+            / (
+                "resources/examples/wide-kernels.dylib"
+                if args.example_wide
+                else "resources/examples/kernels.dylib"
+            )
+            if args.example or args.example_wide
             else args.artifact
         )
         with selected_path.open("rb") as stream:
@@ -109,6 +134,7 @@ def main():
                 "operation": args.command,
                 "artifact": artifact.digest,
                 "arity": args.arguments,
+                "word_bits": args.word_bits,
             }
             if args.domain:
                 request["domain"] = json.loads(args.domain)
@@ -116,13 +142,11 @@ def main():
                 with args.expression.open("r") as stream:
                     request["expression"] = stream.read(65537)
             if args.command == "inverse":
-                if not -2147483648 <= args.target <= 4294967295:
-                    raise ValueError("Target is outside the 32-bit range.")
-                request["target"] = args.target & 0xFFFFFFFF
+                request["target"] = pattern(args.target, args.word_bits, signed=True)
             if args.command == "evaluate":
-                if any(not -2147483648 <= v <= 4294967295 for v in args.inputs):
-                    raise ValueError("Input is outside the 32-bit range.")
-                request["inputs"] = [v & 0xFFFFFFFF for v in args.inputs]
+                request["inputs"] = [
+                    pattern(v, args.word_bits, signed=True) for v in args.inputs
+                ]
             result = bounded_operation(request, code, function.address, function.name)
         print(json.dumps(result, indent=2, allow_nan=False))
     except (OSError, ValueError) as exc:
