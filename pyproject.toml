@@ -25,3 +25,6 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 native_recovery = ["resources/web/*", "resources/examples/*"]
+
+[tool.ruff]
+target-version = "py311"

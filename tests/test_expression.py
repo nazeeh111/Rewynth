@@ -33,7 +33,8 @@ def oracle(node, args):
         )
     if op == "reverse":
         value = oracle(node["arg"], args)
-        return int(f"{value & ((1 << node['width']) - 1):0{node["width"]}b}"[::-1], 2)
+        width = node["width"]
+        return int(format(value & ((1 << width) - 1), f"0{width}b")[::-1], 2)
     a, b = oracle(node["a"], args), oracle(node["b"], args)
     signed = lambda x: x if x < 0x80000000 else x - 0x100000000
     if op == "add":
