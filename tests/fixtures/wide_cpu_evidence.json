@@ -1,0 +1,126 @@
+{
+  "artifact_sha256": "10b2f625faea0360b88707b118cfdef6b1ef51edbb8b83065b1cc527cf09a5c9",
+  "results": [
+    {
+      "function": "wide_add_shift",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_shift63",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_movk48",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_add_carry",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_add_overflow",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_sub_carry",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_sub_signed",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_logic_flags",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_flags",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_cmp",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_zeroext",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_movk",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_rotate",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_arithmetic",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_x_variable_shift",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_x_rotate",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_ubfx_high",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_bfxil_high",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_bfxil_full",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_bfi_high",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_bfi_one",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_w_bfi",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    },
+    {
+      "function": "wide_rbit",
+      "native_assertions": 481,
+      "generic_proof": "bounded: AST exceeds resource bound"
+    },
+    {
+      "function": "wide_linear",
+      "native_assertions": 481,
+      "generic_proof": "unsat"
+    }
+  ],
+  "total_assertions": 11544
+}

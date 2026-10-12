@@ -13,6 +13,7 @@ import time
 from urllib.parse import urlsplit
 
 from .artifacts import Artifact, ArtifactError, MAX_ARTIFACT
+from .words import normalize_request
 
 ROOT = Path(__file__).resolve().parent / "resources"
 MAX_BODY = 45 * 1024 * 1024
@@ -68,7 +69,7 @@ class Workbench(ThreadingHTTPServer):
 
     def start_job(self, body):
         if type(body.get("arity")) is not int or not 1 <= body["arity"] <= 4:
-            raise ValueError("Select one to four 32-bit arguments.")
+            raise ValueError("Select one to four integer arguments.")
         if body.get("operation") not in (
             "recover",
             "verify",
@@ -83,6 +84,7 @@ class Workbench(ThreadingHTTPServer):
             "artifact",
             "symbol",
             "arity",
+            "word_bits",
             "domain",
             "operation",
             "expression",
@@ -90,21 +92,7 @@ class Workbench(ThreadingHTTPServer):
             "inputs",
         }:
             raise ValueError("Unknown operation fields.")
-        domain = body.get("domain")
-        if domain is not None:
-            if not isinstance(domain, list) or len(domain) != body["arity"]:
-                raise ValueError("Domain must have one entry per argument.")
-            for item in domain:
-                if item is not None and (
-                    not isinstance(item, dict)
-                    or set(item) != {"min", "max", "signed"}
-                    or type(item["min"]) is not int
-                    or type(item["max"]) is not int
-                    or type(item["signed"]) is not bool
-                ):
-                    raise ValueError(
-                        "Domain entries require integer min/max and a boolean signed field."
-                    )
+        body = normalize_request(body, wire=True)
         with self.lock:
             if sum(j["state"] == "running" for j in self.jobs.values()) >= 2:
                 raise ValueError(
@@ -226,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         path = urlsplit(self.path).path
         if path == "/api/bootstrap":
-            return self._send({"token": self.server.token, "version": "0.1.0"})
+            return self._send({"token": self.server.token, "version": "0.2.0"})
         if path.startswith("/api/jobs/"):
             with self.server.lock:
                 job = self.server.jobs.get(path.rsplit("/", 1)[1])
@@ -241,6 +229,10 @@ class Handler(BaseHTTPRequestHandler):
             "/style.css": ("web/style.css", "text/css; charset=utf-8"),
             "/bitvector.js": ("web/bitvector.js", "text/javascript; charset=utf-8"),
             "/example": ("examples/kernels.dylib", "application/octet-stream"),
+            "/example-wide": (
+                "examples/wide-kernels.dylib",
+                "application/octet-stream",
+            ),
         }
         if path not in assets:
             return self._send({"error": "Not found."}, 404)

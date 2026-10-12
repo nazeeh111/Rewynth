@@ -60,3 +60,15 @@ https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 
 Owned fixture functions and original implementation: MIT.
 Capstone dependency: BSD-3-Clause; Z3 dependency: MIT, distributed separately by their upstream packages.
+
+## SplitMix64 pure-step fixture
+
+The stateful source is preserved separately as the native oracle. The shipped analyzed step replaces global state with an explicit argument; source and constants are otherwise unchanged.
+
+/*  Written in 2015 by Sebastiano Vigna (vigna@acm.org)
+
+To the extent possible under law, the author has dedicated all copyright
+and related and neighboring rights to this software to the public domain
+worldwide. This software is distributed without any warranty.
+
+See <http://creativecommons.org/publicdomain/zero/1.0/>. */

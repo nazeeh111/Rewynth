@@ -24,3 +24,17 @@ Independent review found and corrected actual errors: shifted immediates, wide c
 The workbench was also operated against the compiled example: a deliberately unsigned clamp edit produced original `0x00000000` versus edited `0x000000ff`; a derived avalanche inverse produced original input `0x471f246e` for output `0xdeadbeef`, whose original model trace returned that output. Workspace and package acceptance evidence is retained in the release receipt.
 
 Run `python -m unittest discover -s tests -v`. A host without ARM64 macOS reports native fixture tests as skipped; data-only artifact/model tests still run. CI uses Linux Python 3.11/3.14 and ARM64 macOS Python 3.12. Hosted results and release byte verification are recorded when actually completed, rather than inferred from this local record.
+
+## Version0.2 word-width checks
+
+Local full suite:59 tests passed. The 64-bit addition has separate checks, not an aggregated universal coverage number:
+
+- Builder:24 owned ARM64 instruction fixtures,11,544 native/model assertions, including mixed W/X writes, flags, shifts and high bitfields.
+- Expression/C:8,588 native64 numerical comparisons under UBSan against independent arithmetic functions.
+- Browser:5,54864-bit numerical comparisons and97232-bit comparisons using the actual BigInt evaluator; high-word hex/decimal packets and hidden-branch bounds checked.
+- Root final product exports:1,590 original/model/recompiled-C cases across six bundled transforms and530 native inverse roundtrip assertions. A word with its lowbit above2^53 survived the exact JSON boundary.
+- Fresh reviewer:6,405 CPU/model cases across21 independently authored functions;33 baseline32 model comparisons UNSAT;352 compiled inverse/native assertions. Original32 fixture digest unchanged.
+
+Exact inverse chain binding and each local two-sided primitive proof are UNSAT. Whole nonlinear64 composition and rebuilt inverse comparisons remain UNKNOWN at bounded deadlines. A compiled reversible `wide_permute` has a shape outside the chain extractor and correctly receives no reusable inverse claim. The pure SplitMix64 adapter is supported; the original stateful function's memory accesses remain unsupported.
+
+Hosted CI, downloaded-release bytes and actual workspace/UI checks are recorded in the final release receipt when completed. Native check counts overlap and are not summed.
