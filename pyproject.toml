@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77,<85"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rewynth"
+version = "0.1.0"
+description = "Recover editable ARM64 integer semantics, falsify edits, and derive inverse programs locally."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+dependencies = ["capstone==5.0.6", "z3-solver==4.15.3.0"]
+authors = [{name = "Nazeeh"}]
+
+[project.scripts]
+rewynth = "native_recovery.cli:main"
+
+[project.urls]
+Repository = "https://github.com/nazeeh111/Rewynth"
+Issues = "https://github.com/nazeeh111/Rewynth/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+native_recovery = ["resources/web/*", "resources/examples/*"]

@@ -1,0 +1,4 @@
+include LICENSE THIRD_PARTY_NOTICES.md
+recursive-include tests *.py *.s *.o *.dylib
+recursive-include docs *.md *.json *.png
+recursive-include src/native_recovery/resources *

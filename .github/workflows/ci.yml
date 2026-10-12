@@ -1,0 +1,41 @@
+name: Verify
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: '3.11'
+          - os: ubuntu-24.04
+            python: '3.14'
+          - os: macos-14
+            python: '3.12'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install release package from checkout
+        run: python -m pip install .
+      - name: Show host and compiler
+        run: |
+          python -c "import platform; print(platform.platform(), platform.machine())"
+          clang --version
+      - name: Native runner must be ARM64
+        if: runner.os == 'macOS'
+        run: python -c "import platform; assert platform.machine() == 'arm64'"
+      - name: Unit, source, model and applicable native checks
+        run: python -m unittest discover -s tests -v
+      - name: Installed CLI recovery and inverse program
+        run: |
+          rewynth recover --example --function _kernel_avalanche --arguments 1 > forward.json
+          rewynth derive_inverse --example --function _kernel_avalanche --arguments 1 > inverse.json
+          python -c "import json; f=json.load(open('forward.json')); i=json.load(open('inverse.json')); assert f['reconstruction']['status']=='verified_model'; assert i['inverse_program']['status']=='verified_inverse_model'; print('Installed recovery and inverse program passed')"

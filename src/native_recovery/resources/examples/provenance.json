@@ -1,0 +1,39 @@
+{
+  "artifact_sha256": "d6b206f48f758bc43e3498a7de54054f3fcb77b2fafc85618faf96d1f8f1f53e",
+  "compiler": "Apple clang 21.0.0 clang-2100.3.34.2",
+  "build": [
+    "clang",
+    "-O2",
+    "-dynamiclib",
+    "kernels.c",
+    "-o",
+    "kernels.dylib"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/nothings/stb/blob/2c980bb59875b0d32144a71867fbdebb2f77cd20/stb_image.h",
+      "git_blob": "9eedabedc45b3e6fd88fae6f14a160b4d53272ec",
+      "sha256": "594c2fe35d49488b4382dbfaec8f98366defca819d916ac95becf3e75f4200b3",
+      "license": "MIT alternative",
+      "functions": [
+        "stbi__clamp",
+        "stbi__bitreverse16",
+        "stbi__compute_y"
+      ]
+    },
+    {
+      "url": "https://github.com/Cyan4973/xxHash/blob/680bf463fa1ca0461b9a7c2dab7556e1f54cf4cf/xxhash.h",
+      "git_blob": "951a187f1c272f4cbe0fee52dc10fb9482aac11b",
+      "sha256": "3dc8d161e867a62d3417f7885b55fdaded8b7b497e2f165d05c94f4fe24f2ca4",
+      "license": "BSD-2-Clause",
+      "functions": [
+        "XXH32_avalanche"
+      ]
+    }
+  ],
+  "owned_functions": [
+    "kernel_mixed",
+    "kernel_bits"
+  ],
+  "native_execution": "Only explicitly identified fixture tests; uploads are data-only."
+}
