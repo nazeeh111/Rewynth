@@ -108,7 +108,7 @@ async function cancel() {
 }
 function working(active) {
   $('cancel').hidden = !active;
-  for (const id of ['recover','verify','inverse','evaluate','derive_inverse','open','example','example-wide','reopen','symbol','arity','word-bits']) $(id).disabled = active || (!artifact && !['open','example','example-wide','reopen','arity','word-bits'].includes(id));
+  for (const id of ['recover','verify','inverse','evaluate','derive_inverse','open','example','example-wide','example-branches','reopen','symbol','arity','word-bits']) $(id).disabled = active || (!artifact && !['open','example','example-wide','example-branches','reopen','arity','word-bits'].includes(id));
   for (const input of $('domains').querySelectorAll('input')) input.disabled = active;
 }
 function invalidate() {
@@ -167,7 +167,8 @@ function trace(witness, title) {
   $('trace').replaceChildren();
   for (const row of witness.trace || []) {
     const tr = document.createElement('tr');
-    for (const value of [formatAddress(row.address), row.instruction, row.destination, exact(wordField(row,'value_u')).toString(), hex(wordField(row,'value_u')), row.condition_taken === undefined ? '—' : String(row.condition_taken)]) { const td = document.createElement('td'); td.textContent = value; tr.append(td); }
+    const value = row.kind === 'branch' ? exact(row.next_address) : exact(wordField(row,'value_u'));
+    for (const text of [formatAddress(row.address), row.instruction, row.destination, value.toString(), row.kind === 'branch' ? formatAddress(row.next_address) : hex(value), row.condition_taken === undefined ? '—' : String(row.condition_taken)]) { const td = document.createElement('td'); td.textContent = text; tr.append(td); }
     $('trace').append(tr);
   }
   wordField(witness,'inputs_u').forEach((n,i) => { if ($('arg-' + i)) $('arg-' + i).value = n; });
@@ -233,6 +234,7 @@ function action(id, fn) { $(id).addEventListener('click', async () => { try { aw
 action('open', () => $('artifact-file').click()); action('reopen', () => $('workspace-file').click());
 action('example', async () => { $('word-bits').value = '32'; const response = await fetch('/example'); if (!response.ok) throw new Error('Example artifact unavailable.'); await openBytes(base64(new Uint8Array(await response.arrayBuffer())), 'Image, hash and bitfield kernels · clang ARM64'); $('symbol').value = '_kernel_clamp'; invalidate(); message('Real compiled kernels loaded. Clamp is selected with one argument. Luma requires three arguments and RGB bounds 0–255. Hash and reverse use one, mixed arithmetic two, bitfield four.'); });
 action('example-wide', async () => { const response = await fetch('/example-wide'); if (!response.ok) throw new Error('Wide example artifact unavailable.'); $('word-bits').value = '64'; await openBytes(base64(new Uint8Array(await response.arrayBuffer())), '64-bit state and bit transforms · clang ARM64'); $('symbol').value = '_splitmix64_step'; invalidate(); message('64-bit compiled transforms loaded. The pure SplitMix64 step maps a prior state to one full output. Derive its inverse to recover that prior state.'); });
+action('example-branches', async () => { const response = await fetch('/example-branches'); if (!response.ok) throw new Error('Branching example artifact unavailable.'); $('word-bits').value = '32'; $('arity').value = '1'; await openBytes(base64(new Uint8Array(await response.arrayBuffer())), 'Conditional integer kernels · clang ARM64'); $('symbol').value = '_tone_curve32'; invalidate(); message('Branching kernels loaded. Tone curve uses one 32-bit input: try 256, 1024 and 5000 to trace its different returns. Morton uses two 32-bit inputs; window tag uses three 64-bit inputs; record hash uses four 64-bit inputs.'); });
 $('artifact-file').addEventListener('change', async (event) => { const file = event.target.files[0]; try { if (!file) return; if (file.size > 33554432) throw new Error('Artifact exceeds 32 MiB.'); await openBytes(base64(new Uint8Array(await file.arrayBuffer())),file.name); } catch (e) { message(e.message); } finally { event.target.value = ''; } });
 $('workspace-file').addEventListener('change', async (event) => { const file = event.target.files[0]; try { if (!file) return; if (file.size > 45*1024*1024) throw new Error('Workspace exceeds 45 MiB.'); await loadWorkspace(JSON.parse(await file.text())); } catch (e) { message(e.message); } finally { event.target.value = ''; } });
 $('word-bits').addEventListener('change', () => { widthLabels(); inputFields(); invalidate(); });

@@ -101,7 +101,7 @@
   "isa_native_assertions": 11544,
   "mixer_function_sha256": "7c82d5fb046adc4fb9c2415e191d66c05f139deed5a061a65a268c83ba0dc713",
   "generated_source_sha256": "34c351dd9e15c2de2aec1fe654f40386b9b42b9cd29f4219402d925f2fbe90a4",
-  "generated_artifact_sha256": "c7fc93d095f41ce6d8b6db9e8d530fc59a16c455d76420ad617f387375cce8d8",
+  "generated_artifact_sha256": "31b2082adac2edbdd265f29145e557cff9f773832025cca818039ac8fcc818f1",
   "native_mixer_assertions": 6045,
   "inverse_proofs": {
     "chain_binding": {
@@ -216,7 +216,17 @@
         ],
         "memory": "none; memory instructions rejected",
         "calls": "none; calls rejected",
-        "loops": "none; branches rejected in this probe",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 19,
+          "edges": 18,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
         "proof_scope": "output equality in the implemented ISA model; not a formally verified CPU semantics"
       }
     },
@@ -234,7 +244,17 @@
         ],
         "memory": "none; memory instructions rejected",
         "calls": "none; calls rejected",
-        "loops": "none; branches rejected in this probe",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 25,
+          "edges": 24,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
         "proof_scope": "output equality in the implemented ISA model; not a formally verified CPU semantics"
       },
       "reason": "timeout"

@@ -4,7 +4,7 @@
 
 Rewynth is a local laboratory for recovering selected ARM64 functions, editing their semantics, finding counterexamples and deriving reusable inverse programs. It reads the original machine instructions as data. No model API, account or cloud service is required.
 
-The shipped demonstration reconstructs image-processing kernels and an xxHash mixing function from actual compiled bytes. A backward program derived from the mixer computes an original 32-bit input from its output without making a new solver query. This reverses the **avalanche transform**, not the complete variable-length xxHash algorithm.
+The shipped demonstrations reconstruct image-processing kernels, branching integer transforms and an xxHash mixing function from actual compiled bytes. Branching examples retain guards, multiple returns and shared exits in editable source. A backward program derived from the mixer computes an original 32-bit input from its output without making a new solver query. This reverses the **avalanche transform**, not the complete variable-length xxHash algorithm.
 
 ![Actual installed Rewynth workbench](docs/workbench.png)
 
@@ -48,6 +48,18 @@ rewynth evaluate --example-wide --function _splitmix64_step --arguments 1 --word
 
 [Word-width, exact JSON and workspace contracts](docs/64bit.md) describe the interfaces. Version 1 workspaces reopen as 32-bit; new version 2 workspaces retain the selected width and exact query text. The original 32-bit example is unchanged.
 
+## Recover a function with branches
+
+Choose **Load conditional branch example**, then recover `_tone_curve32` with one 32-bit argument. It is an actual compiled 12-bit luminance curve with shadow and highlight segments, an identity middle and an upper saturation guard. Trace `511`, `512` and `4096`: the results are `510`, `512` and `4095`, and the trace shows only the executed branches, writes and return. Change the recovered expression to `x0`, then **Find a counterexample**. Export the recovered or edited source with **Export portable C**.
+
+The same six-function artifact also contains a guarded two-coordinate Morton spatial index, a 64-bit window tag and a four-input record mixer. Its two additional C functions compile to conditional selects and serve as controls. These are original controlled fixtures; hash-like examples are noncryptographic. [Control-flow scope and a complete CLI recovery/edit/export experiment](docs/control-flow.md) document the provenance and limits.
+
+```sh
+rewynth recover --example-branches --function _tone_curve32 --arguments 1
+rewynth evaluate --example-branches --function _tone_curve32 --arguments 1 --inputs 4096
+rewynth recover --example-branches --function _record_hash64 --arguments 4 --word-bits 64
+```
+
 ## What the engine does
 
 **Recovery:** Capstone decodes the selected instructions. Rewynth translates its supported 32- and 64-bit register operations into Z3 expressions over bit-vectors (fixed-width machine words), preserving arithmetic flags and conditions. Compact semantic families solve for missing parameters and refine failed hypotheses using solver-produced counterexamples. A general bit-linear learner probes basis vectors, groups the inferred mask/shift/XOR contributions, then checks the complete candidate. Nonlinear functions use a bounded general semantics-to-source fallback. Recovered source uses prior-only bindings to keep shared expressions readable.
@@ -60,11 +72,11 @@ The reusable inverse is computed from the recovered program. The separate **Find
 
 ## Scope is explicit
 
-This is a **bounded instruction-model result**, not a formally verified CPU lifter, whole-program decompiler or calling-convention inference system. You select the 32- or 64-bit word size, argument registers and returned `w0` or `x0` bits. In 64-bit mode, writes to a `w` register correctly zero its upper `x` bits; flags and shift masks follow each instruction's operand width. Memory, calls, loops, indirect control flow, floating point, SIMD, ARM64e and unsupported instructions are rejected. Code with unresolved relocations is rejected before analysis. Stripped-symbol and universal-binary boundary recovery are outside this release.
+This is a **bounded instruction-model result**, not a formally verified CPU lifter, whole-program decompiler or calling-convention inference system. You select the 32- or 64-bit word size, argument registers and returned `w0` or `x0` bits. In 64-bit mode, writes to a `w` register correctly zero its upper `x` bits; flags and shift masks follow each instruction's operand width. Direct conditional branches and shared return paths are supported when their control-flow graph has no directed cycle. A branch may target a lower address without forming a loop. Memory, calls, loops, indirect control flow, floating point, SIMD, ARM64e and unsupported instructions are rejected. Code with unresolved relocations is rejected before analysis. Stripped-symbol and universal-binary boundary recovery are outside this release.
 
 The source language wraps arithmetic modulo 2³² or 2⁶⁴ and masks shift counts to 0–31 or 0–63. Browser computation uses exact BigInt values; 64-bit HTTP inputs and domain bounds must be strings so JSON numbers cannot silently lose bits. Signed and unsigned comparisons are distinct. Imports are never loaded for native execution. CPU comparisons execute only identified public or owned test fixtures and generated C.
 
-The workbench accepts at most 32 MiB per artifact, 4 KiB per selected function and 128 decoded instructions. The source AST (a tree of typed operations and inputs) is bounded to 256 nodes and depth 24. Each analysis runs in an owned cancelable process with a 20-second deadline; Linux additionally imposes a memory limit. The reader applies aggregate symbol and relocation budgets. Sessions and retained jobs are bounded. It binds to loopback and rejects cross-origin writes and unexpected hostnames.
+The workbench accepts at most 32 MiB per artifact, 4 KiB per selected function and 128 reachable decoded instructions with at most 256 control-flow edges. The source AST (a tree of typed operations and inputs) is bounded to 256 nodes and depth 24. Each analysis runs in an owned cancelable process with a 20-second deadline; Linux additionally imposes a memory limit. The reader applies aggregate symbol and relocation budgets. Sessions and retained jobs are bounded. It binds to loopback and rejects cross-origin writes and unexpected hostnames.
 
 ## Evidence
 
@@ -83,12 +95,12 @@ rewynth inverse --example --function _kernel_avalanche --arguments 1 --target 0x
 rewynth verify --example --function _kernel_avalanche --arguments 1 --expression my-edit.txt
 ```
 
-Replace `--example` with an explicit artifact path. CLI output is JSON; errors exit 2. `verify` reads the bounded source language, never arbitrary Python or C. See [source language](docs/source-language.md) and [architecture](docs/architecture.md).
+Replace `--example` with `--example-wide`, `--example-branches` or an explicit artifact path, selecting exactly one. CLI output is JSON; errors exit 2. `verify` reads the bounded source language, never arbitrary Python or C. See [source language](docs/source-language.md) and [architecture](docs/architecture.md).
 
 ## Contribute
 
 Public or invented small transforms that expose an incorrect encoding are especially useful. Include instruction bytes, argument/domain declarations, expected result and a minimal witness. Do not upload private artifacts. Run `python -m unittest discover -s tests -v` from an installed checkout. Tests that execute generated C require Clang; native ARM64 fixture checks report skips on other hosts. CI exercises the data-only core on Linux and the controlled native tests on ARM64 macOS.
 
-Built with Codex assistance. Original project code is MIT; fixture excerpts retain stb's MIT and xxHash's BSD-2-Clause notices. Capstone and Z3 retain their upstream licenses. [Provenance](src/native_recovery/resources/examples/provenance.json) records immutable sources and hashes.
+Built with Codex assistance. Original project code and branch fixtures are MIT; fixture excerpts retain stb's MIT and xxHash's BSD-2-Clause notices. Capstone and Z3 retain their upstream licenses. [Original fixture provenance](src/native_recovery/resources/examples/provenance.json) and [branch fixture provenance](src/native_recovery/resources/examples/branch-provenance.json) record sources and hashes.
 
 If a recovered program is useful in your work, a reproducible example or issue is more helpful than a broad claim. Stars and follows are welcome.

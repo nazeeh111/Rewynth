@@ -1,10 +1,10 @@
 """Bounded, data-only ARM64 register semantics for explicit 32/64-bit words.
 
 The instruction model is independently tested, not formally verified.
-Unsupported memory, calls, branches, extensions and register forms fail closed.
+Unsupported memory, calls, cyclic control flow and register forms fail closed.
 """
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import hashlib, time, re
 from typing import Any
@@ -52,6 +52,10 @@ class FunctionModel:
     instructions: list
     traces: list
     word_bits: int = 32
+    flow: Any = None
+    guards: dict = field(default_factory=dict)
+    branch_conditions: dict = field(default_factory=dict)
+    return_values: dict = field(default_factory=dict)
 
     def __post_init__(self):
         _infer_word_bits(self.inputs,self.word_bits)
@@ -71,7 +75,8 @@ class FunctionModel:
                 "argument_registers":[f"{prefix}{i}" for i in range(self.arity)],
                 "return_register":prefix+"0","domain":self.domain,
                 "memory":"none; memory instructions rejected","calls":"none; calls rejected",
-                "loops":"none; branches rejected in this probe",
+                "loops":"none; cyclic control flow rejected",
+                "control_flow":self.flow.summary() if self.flow else {"kind":"straight_line"},
                 "proof_scope":"output equality in the implemented ISA model; not a formally verified CPU semantics"}
 
     def constraints(self):
@@ -86,7 +91,34 @@ class FunctionModel:
         self.evaluate(values)
         substitutions=[(x,bv(v,self.word_bits)) for x,v in zip(self.inputs,values)]
         output=[]
-        for instruction,destination,expr,condition in self.traces:
+        writes={instruction['address']:(instruction,destination,expr,condition)
+                for instruction,destination,expr,condition in self.traces}
+        sequence=self.flow.order if self.flow else list(writes)
+        def truth(expr):
+            value=z3.simplify(z3.substitute(expr,*substitutions))
+            if not z3.is_true(value) and not z3.is_false(value):
+                raise Unsupported("Execution guard did not evaluate concretely")
+            return z3.is_true(value)
+        for pc in sequence:
+            if self.flow and pc not in self.guards:continue
+            if pc in self.guards and not truth(self.guards[pc]):continue
+            if self.flow and pc in self.flow.branches:
+                ins=self.flow.instructions[pc];branch=self.flow.branches[pc]
+                taken=truth(self.branch_conditions[pc])
+                output.append({"kind":"branch","address":pc,
+                               "instruction":f"{ins.mnemonic} {ins.op_str}".strip(),
+                               "destination":"pc","target_address":branch.target,
+                               "next_address":branch.target if taken else branch.fallthrough,
+                               "condition_taken":taken})
+                continue
+            if pc in self.return_values:
+                expr=self.return_values[pc];ins=self.flow.instructions[pc]
+                output.append({"kind":"return","address":pc,"instruction":"ret",
+                               "destination":("x" if self.word_bits==64 else "w")+"0",
+                               f"value_u{self.word_bits}":z3.simplify(z3.substitute(expr,*substitutions)).as_long()})
+                continue
+            if pc not in writes:continue
+            instruction,destination,expr,condition=writes[pc]
             item={"address":instruction["address"],"instruction":instruction["assembly"],
                   "destination":destination,f"value_u{self.word_bits}":z3.simplify(z3.substitute(expr,*substitutions)).as_long()}
             if condition is not None:item["condition_taken"]=z3.is_true(z3.simplify(z3.substitute(condition,*substitutions)))
@@ -110,15 +142,20 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
         raise Unsupported("Function must be 1–4096 aligned bytes")
     if type(address) is not int or address<0 or address%4:
         raise Unsupported("Function address must be a nonnegative aligned integer")
+    if address+len(code)>1<<64:raise Unsupported("Function span exceeds ARM64 addresses")
     if type(arity) is not int or not 1<=arity<=4:raise Unsupported("Probe supports 1–4 integer arguments")
     if not isinstance(name,str) or len(name)>1024:raise Unsupported("Bounded function name required")
     if metadata is None:metadata={"sha256":hashlib.sha256(code).hexdigest(),"code_sha256":hashlib.sha256(code).hexdigest(),"identity_scope":"function bytes only"}
     args=[z3.BitVec(f"arg{i}",word_bits) for i in range(arity)]
     # The bank stores full selected words. Reading a W alias extracts low bits;
     # writing W in 64 mode zeroes the corresponding X register's high half.
+    from .control_flow import decode_graph, ControlFlowError
+    try:flow=decode_graph(code,address)
+    except ControlFlowError as error:raise Unsupported(str(error)) from error
     bank={i:value for i,value in enumerate(args)}
-    engine=capstone.Cs(capstone.CS_ARCH_ARM64,capstone.CS_MODE_LITTLE_ENDIAN);engine.detail=True
-    insns=[];traces=[];flags=None;returned=False
+    insns=[];traces=[];flags=None
+    incoming={address:[(z3.BoolVal(True),bank,None)]}
+    guards={};branch_conditions={};returns={}
 
     def reg(name):
         match=re.fullmatch(r"([wx])(zr|(?:[0-9]|[12][0-9]|30))",name)
@@ -174,7 +211,17 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
         sa,sb,sr=[z3.Extract(bits-1,bits-1,x)==z3.BitVecVal(1,1) for x in (a,b,result)]
         carry=z3.UGE(a,b) if subtract else z3.ULT(result,a)
         overflow=z3.And(sa!=sb,sr!=sa) if subtract else z3.And(sa==sb,sr!=sa)
-        return {"n":sr,"z":result==bv(0,bits),"c":carry,"v":overflow}
+        return {"n":sr,"z":a==b if subtract else result==bv(0,bits),"c":carry,"v":overflow}
+
+    def guard_value(value):
+        # Bit-vector simplification can expand an unsigned threshold into many
+        # Extract/OR terms. Fold definite truth values without replacing compact
+        # symbolic comparisons by that larger, equivalent representation.
+        folded=z3.simplify(value)
+        return folded if z3.is_true(folded) or z3.is_false(folded) else value
+
+    def negate(value):
+        return value.arg(0) if z3.is_not(value) else guard_value(z3.Not(value))
 
     def logical_flags(value):
         return {"n":z3.Extract(value.size()-1,value.size()-1,value)==z3.BitVecVal(1,1),"z":value==bv(0,value.size()),"c":z3.BoolVal(False),"v":z3.BoolVal(False)}
@@ -184,20 +231,53 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
         n,zero,c,v=[flags[k] for k in ("n","z","c","v")]
         conditions={capstone.arm64.ARM64_CC_EQ:zero,capstone.arm64.ARM64_CC_NE:z3.Not(zero),capstone.arm64.ARM64_CC_HS:c,capstone.arm64.ARM64_CC_LO:z3.Not(c),capstone.arm64.ARM64_CC_HI:z3.And(c,z3.Not(zero)),capstone.arm64.ARM64_CC_LS:z3.Or(z3.Not(c),zero),capstone.arm64.ARM64_CC_GE:n==v,capstone.arm64.ARM64_CC_LT:n!=v,capstone.arm64.ARM64_CC_GT:z3.And(z3.Not(zero),n==v),capstone.arm64.ARM64_CC_LE:z3.Or(zero,n!=v),capstone.arm64.ARM64_CC_MI:n,capstone.arm64.ARM64_CC_PL:z3.Not(n),capstone.arm64.ARM64_CC_VS:v,capstone.arm64.ARM64_CC_VC:z3.Not(v)}
         if cc not in conditions:raise Unsupported("Unsupported condition code")
-        return z3.simplify(conditions[cc])
+        return guard_value(conditions[cc])
 
-    for ins in engine.disasm(code,address):
-        if len(insns)>=128:raise Unsupported("Function exceeds instruction budget")
-        if ins.address!=address+4*len(insns):raise Unsupported("Undecoded bytes inside function")
+    def merge_value(states,getter):
+        value=getter(states[-1])
+        for state in reversed(states[:-1]):
+            alternative=getter(state)
+            if not z3.eq(alternative,value):value=z3.If(state[0],alternative,value)
+        return value
+
+    for pc in flow.order:
+        ins=flow.instructions[pc]
+        states=[state for state in incoming.get(pc,[]) if not z3.is_false(z3.simplify(state[0]))]
+        if not states:continue
+        guard=states[0][0] if len(states)==1 else guard_value(z3.Or(*[state[0] for state in states]))
+        guards[pc]=guard
+        initialized=set.intersection(*[set(state[1]) for state in states])
+        bank={i:merge_value(states,lambda state,i=i:state[1][i]) for i in initialized}
+        flags={k:merge_value(states,lambda state,k=k:state[2][k]) for k in ('n','z','c','v')} if all(state[2] is not None for state in states) else None
         record={"address":ins.address,"assembly":f"{ins.mnemonic} {ins.op_str}".strip(),"bytes_hex":ins.bytes.hex()};insns.append(record)
         ops=ins.operands;mn=ins.mnemonic;condition=None
+        def propagate(target,condition):
+            path=condition if z3.is_true(guard) else guard if z3.is_true(condition) else guard_value(z3.And(guard,condition))
+            if not z3.is_false(path):incoming.setdefault(target,[]).append((path,dict(bank),None if flags is None else dict(flags)))
         if mn=="ret":
-            if ins.op_str:raise Unsupported("Non-default return is unsupported")
-            returned=True;break
+            if 0 not in bank:raise Unsupported("Missing supported function return")
+            returns[pc]=bank[0]
+            continue
+        if pc in flow.branches:
+            branch=flow.branches[pc]
+            if branch.kind=='always':condition=z3.BoolVal(True)
+            elif branch.kind=='flags':condition=condition_code(ins.cc)
+            else:
+                value=read_register(branch.register)
+                if branch.kind in ('cbz','cbnz'):condition=value==bv(0,value.size())
+                else:
+                    if type(branch.bit) is not int or not 0<=branch.bit<value.size():raise Unsupported("Invalid test branch bit")
+                    condition=z3.Extract(branch.bit,branch.bit,value)==z3.BitVecVal(0,1)
+                if branch.kind in ('cbnz','tbnz'):condition=negate(condition)
+            branch_conditions[pc]=condition
+            propagate(branch.target,condition)
+            if branch.fallthrough is not None:propagate(branch.fallthrough,negate(condition))
+            continue
         if mn in {"cmp","cmn","tst"}:
             if not ops or ops[0].type!=ARM64_OP_REG:raise Unsupported("Flag operation needs register operand")
             bits,_=reg(ins.reg_name(ops[0].reg));a,b=operand(ins,ops[0],bits),operand(ins,ops[1],bits)
             flags=logical_flags(a&b) if mn=="tst" else arithmetic_flags(a,b,a-b if mn=="cmp" else a+b,mn=="cmp")
+            propagate(pc+4,z3.BoolVal(True))
             continue
         if mn in {"adds","subs","ands"}:mn=mn[:-1]
         if mn not in {"mov","movk","add","sub","mul","madd","msub","and","orr","eor","bic","lsl","lsr","asr","ror","ubfx","bfxil","bfi","rbit","neg","mvn","csel","csinv","csneg","csinc"}:
@@ -248,7 +328,10 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
         if constant_only(value):value=z3.simplify(value)
         bank[index]=value if bits==word_bits else z3.ZeroExt(word_bits-bits,value)
         traces.append((record,destination,bank[index],condition))
-    if not returned or 0 not in bank:raise Unsupported("Missing supported function return")
+        propagate(pc+4,z3.BoolVal(True))
+    if not returns:raise Unsupported("Missing supported function return")
+    returned_states=[(guards[pc],value) for pc,value in returns.items()]
+    output=merge_value(returned_states,lambda state:state[1])
     domain=[None]*arity if domain is None else domain
     if not isinstance(domain,list) or len(domain)!=arity:raise Unsupported("Domain must have one entry per argument")
     for d in domain:
@@ -257,7 +340,10 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
         if set(d)-{"min","max","signed"} or ("signed" in d and type(d["signed"]) is not bool):raise Unsupported("Invalid domain keys or signed flag")
         lo,hi=(-(1<<(word_bits-1)),(1<<(word_bits-1))-1) if d.get("signed",False) else (0,_mask(word_bits))
         if not lo<=d["min"]<=d["max"]<=hi:raise Unsupported("Invalid domain bounds")
-    return FunctionModel(metadata,name,arity,args,bank[0],domain,insns,traces,word_bits)
+    # Disassembly is shown in physical order; execution traces use graph order and guards.
+    insns.sort(key=lambda record:record['address'])
+    return FunctionModel(metadata,name,arity,args,output,domain,insns,traces,word_bits,
+                         flow,guards,branch_conditions,returns)
 
 def ast_expr(node, args, depth=0, budget=None, *, word_bits=None):
     W = _infer_word_bits(args, word_bits)
@@ -771,6 +857,11 @@ def expression_to_ast(expr, inputs, *, word_bits=None):
             }
         if kind == z3.Z3_OP_NOT:
             return binary("eq", boolean_value(children[0]), C(0))
+        if kind == z3.Z3_OP_DISTINCT and len(children)==2:
+            a,b=children
+            aa,bb=(boolean_value(a),boolean_value(b)) if z3.is_bool(a) else (convert(a),convert(b))
+            equal=binary("eq",aa,bb)
+            return binary("eq",{"op":"ite","condition":equal,"then":C(1),"else":C(0)},C(0))
         if kind in {z3.Z3_OP_AND, z3.Z3_OP_OR, z3.Z3_OP_XOR}:
             values = [boolean_value(child) for child in children]
             op = {z3.Z3_OP_AND: "and", z3.Z3_OP_OR: "or", z3.Z3_OP_XOR: "xor"}[kind]

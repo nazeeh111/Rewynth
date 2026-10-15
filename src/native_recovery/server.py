@@ -233,6 +233,10 @@ class Handler(BaseHTTPRequestHandler):
                 "examples/wide-kernels.dylib",
                 "application/octet-stream",
             ),
+            "/example-branches": (
+                "examples/branch-kernels.dylib",
+                "application/octet-stream",
+            ),
         }
         if path not in assets:
             return self._send({"error": "Not found."}, 404)

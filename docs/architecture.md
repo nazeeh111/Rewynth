@@ -7,6 +7,7 @@ Thin ARM64 artifact
    → bounded Mach-O / ELF reader
    → explicit function bytes and SHA256
    → Capstone instruction decoding
+   → bounded acyclic direct control-flow graph
    → owned 32/64-bit register / instruction-width flag semantics
    → Z3 bit-vector expression
       → counterexample-refined source recovery
@@ -24,3 +25,5 @@ Thin ARM64 artifact
 `server.py` owns loopback admission, bounded artifact retention, process lifetime, deadlines and cancellation. Each job rebuilds its model from the selected immutable bytes; a process timeout produces no equivalence conclusion. CLI computations use the same process boundary. Browser workspaces retain bytes, exact settings and edit/query drafts, while restored proofs must be recomputed.
 
 The solver and lifter are trusted parts of the model, not themselves formally verified by these checks. Independent native tests compare identified fixtures and generated C with model results. Those observations support specific tested instruction forms and do not establish correctness of arbitrary imported programs.
+
+`control_flow.py` decodes reachable instructions, validates direct targets and topologically orders the graph. The lifter merges register values and flags under their execution guards instead of enumerating paths. Registers or flags missing on an incoming path remain unavailable. Multiple returns combine into one output expression; concrete traces filter guards and retain the actual branch/write/return order. A backward address edge is allowed when the directed graph remains acyclic. The existing 128-instruction and editable-expression bounds remain in force, with at most 256 graph edges.

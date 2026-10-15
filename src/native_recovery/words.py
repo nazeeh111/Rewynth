@@ -84,7 +84,7 @@ def normalize_request(request, *, wire=False):
 def encode_exact(value):
     if isinstance(value, dict):
         return {
-            k: hex(v) if k == "address" and type(v) is int else encode_exact(v)
+            k: hex(v) if k in {"address","next_address","target_address"} and type(v) is int else encode_exact(v)
             for k, v in value.items()
         }
     if isinstance(value, list):
