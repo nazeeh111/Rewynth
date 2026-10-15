@@ -60,6 +60,19 @@ rewynth evaluate --example-branches --function _tone_curve32 --arguments 1 --inp
 rewynth recover --example-branches --function _record_hash64 --arguments 4 --word-bits 64
 ```
 
+Run a complete [conditional lesson](docs/control-flow.md#run-the-complete-lesson)
+from the checkout:
+
+```sh
+.venv/bin/python examples/conditional_lab.py --output branch-lab
+```
+
+Its report and saved evidence show why the same identity edit produces a
+counterexample over all 32-bit inputs but no mismatch in the curve's identity
+segment, 512 through 3071. It also exports original and edited portable C.
+The lesson works on supported Linux or macOS hosts without executing the
+ARM64 fixture, and preserves existing result directories.
+
 ## What the engine does
 
 **Recovery:** Capstone decodes the selected instructions. Rewynth translates its supported 32- and 64-bit register operations into Z3 expressions over bit-vectors (fixed-width machine words), preserving arithmetic flags and conditions. Compact semantic families solve for missing parameters and refine failed hypotheses using solver-produced counterexamples. A general bit-linear learner probes basis vectors, groups the inferred mask/shift/XOR contributions, then checks the complete candidate. Nonlinear functions use a bounded general semantics-to-source fallback. Recovered source uses prior-only bindings to keep shared expressions readable.

@@ -12,46 +12,51 @@ The shipped `_tone_curve32` has one unsigned 32-bit argument. Inputs 0 through 4
 
 In the workbench choose **Load conditional branch example**, then **Recover source**. Keep one argument and 32-bit words. Trace 511, 512, 3072 and 4096: the outputs are 510, 512, 3073 and 4095. Inspect the `branch` and `return` trace events and compare the executed paths. Only one return appears in each concrete trace. Restoring the recovered expression and verifying it checks the original modeled behavior. Replacing the expression with `x0` produces a solver counterexample. **Export portable C** exports the current editable expression, so restore recovery first when exporting the original behavior.
 
-This complete CLI experiment saves recovery, a trace, a deliberately incorrect edit, its counterexample evidence and standalone C. Run it using the Python environment where Rewynth is installed. It creates a new `tone-experiment` directory and refuses to overwrite an existing one. No uploaded binary or native fixture is executed.
+## Run the complete lesson
 
-```python
-import json
-from pathlib import Path
-import subprocess
-import sys
+From a checkout of this repository, use the Python environment where Rewynth
+0.3 is installed:
 
-folder = Path("tone-experiment")
-folder.mkdir()  # Existing work is preserved: choose a new name for another run.
-selection = ["--example-branches", "--function", "_tone_curve32", "--arguments", "1"]
-
-def run(operation, *options):
-    command = [sys.executable, "-m", "native_recovery.cli", operation, *selection, *options]
-    return json.loads(subprocess.run(command, check=True, capture_output=True, text=True).stdout)
-
-def save(name, text):
-    with (folder / name).open("x") as stream:
-        stream.write(text)
-
-recovered = run("recover")
-assert recovered["reconstruction"]["status"] == "verified_model", recovered
-save("recovery.json", json.dumps(recovered, indent=2))
-save("tone.c", recovered["source"])
-save("recovered.txt", recovered["expression"])
-trace = run("evaluate", "--inputs", "4096")
-assert trace["witness"]["output_u32"] == 4095
-save("trace.json", json.dumps(trace, indent=2))
-unchanged = run("verify", "--expression", str(folder / "recovered.txt"))
-assert unchanged["verification"]["status"] == "unsat", unchanged
-save("unchanged.json", json.dumps(unchanged, indent=2))
-save("edit.txt", "x0\n")
-edited = run("verify", "--expression", str(folder / "edit.txt"))
-assert edited["verification"]["status"] == "sat", edited
-save("counterexample.json", json.dumps(edited, indent=2))
-save("edited-tone.c", edited["source"])
-print("Saved original and edited C, trace and comparison evidence in", folder)
+```sh
+.venv/bin/python examples/conditional_lab.py --output branch-lab
 ```
 
-`tone.c` contains the recovered original behavior. `edited-tone.c` is the deliberately incorrect identity version, whose differing input is recorded in `counterexample.json`. Both are standalone defined-width C, requiring only standard integer/Boolean headers. Neither needs a solver at runtime. `unsat` means no output mismatch within the declared instruction model and domain, not a formal CPU proof.
+The [lesson script](../examples/conditional_lab.py) writes a new directory and
+refuses to overwrite an existing one. No compiler, browser, native ARM64 host
+or network is needed after installation. The fixture is read as data. On a
+failed or undecided operation it retains partial evidence, exits with an error,
+and leaves no completion report. Use another directory name for a fresh run.
+
+Open `branch-lab/REPORT.md`. It records three different questions:
+
+| Comparison with the original instruction model | Input domain | Expected solver result |
+|---|---|---|
+| Recovered source | All unsigned 32-bit patterns | UNSAT |
+| Deliberate identity edit `x0` | All unsigned 32-bit patterns | SAT, with an actual differing input |
+| The same identity edit | Unsigned 512 through 3071 inclusive | UNSAT |
+
+SAT means a contradicting input exists. UNSAT means none exists under the
+implemented instruction model and the stated bounds. The middle segment is
+identity, so narrowing the input domain changes the question. It does not make
+the edit equivalent over the full word range. UNKNOWN would stop the lesson;
+it is never reported as UNSAT. These are model comparisons, not a formal CPU
+or lifter proof.
+
+The report includes the actual counterexample and its concrete model replay,
+boundary values, hashes binding the artifact and function, and the filename
+of every result. `identity-full-domain.json` contains the actual executed trace;
+`identity-middle-domain.json` retains the explicit unsigned bounds. Additional
+`trace-*.json` files each show one executed return. The report is published
+atomically without overwriting another file, after all expected results pass.
+`SHA256.json` covers the evidence files saved
+before the report; it does not cover itself or the report.
+
+`original.c` exports the recovered full-domain behavior. `identity.c` exports
+the deliberately incorrect identity version. Both contain a function named
+`recovered`, so compile them separately. They are standalone defined-width C
+requiring only standard integer/Boolean headers and no solver at runtime.
+The restricted comparison does not add an input guard to `identity.c`.
+The script adds no dependencies beyond the installed Rewynth package.
 
 ## More actual compiled examples
 
