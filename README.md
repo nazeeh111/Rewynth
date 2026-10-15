@@ -73,6 +73,18 @@ segment, 512 through 3071. It also exports original and edited portable C.
 The lesson works on supported Linux or macOS hosts without executing the
 ARM64 fixture, and preserves existing result directories.
 
+## What an edit comparison establishes
+
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/diagrams/comparison-mobile.svg">
+  <img src="docs/diagrams/comparison.svg" alt="The original instruction model, edit and allowed input domain feed a solver comparison. SAT returns a mismatch; UNSAT establishes equality only in that model and domain; UNKNOWN makes no equality conclusion.">
+</picture>
+
+Unsupported code is refused before this comparison. Changing the domain changes
+the question. The [runnable lesson](docs/control-flow.md#run-the-complete-lesson)
+saves actual results; this figure explains their scope.
+[Editable diagram source and design credit](docs/diagrams/README.md).
+
 ## What the engine does
 
 **Recovery:** Capstone decodes the selected instructions. Rewynth translates its supported 32- and 64-bit register operations into Z3 expressions over bit-vectors (fixed-width machine words), preserving arithmetic flags and conditions. Compact semantic families solve for missing parameters and refine failed hypotheses using solver-produced counterexamples. A general bit-linear learner probes basis vectors, groups the inferred mask/shift/XOR contributions, then checks the complete candidate. Nonlinear functions use a bounded general semantics-to-source fallback. Recovered source uses prior-only bindings to keep shared expressions readable.

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="comparison" viewBox="0 0 880 768" role="img" aria-labelledby="comparison-title comparison-desc">
+<title id="comparison-title">What an edit comparison establishes</title>
+<desc id="comparison-desc">The original instruction model, edited source and declared input domain determine whether the solver finds a counterexample, proves no mismatch within that scope, or remains undecided.</desc>
+<defs><marker id="comparison-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 1 L7 4 L0 7" fill="none" stroke="#687264" stroke-width="1.5" /></marker></defs>
+<rect width="880" height="768" fill="#f5f3ee" />
+<text x="32" y="44" text-anchor="start" fill="#ac481b" font-family="ui-monospace, monospace" font-size="14" font-weight="500"><tspan x="32" dy="0">REWYNTH / MODEL COMPARISON</tspan></text>
+<text x="32" y="88" text-anchor="start" fill="#242823" font-family="Georgia, serif" font-size="32" font-weight="400"><tspan x="32" dy="0">Compare an edit. Keep the scope.</tspan></text>
+<text x="32" y="120" text-anchor="start" fill="#60675c" font-family="system-ui, sans-serif" font-size="20" font-weight="400"><tspan x="32" dy="0">Three inputs determine the question the solver answers.</tspan></text>
+<path d="M152 252 V276 Q152 284 160 284 H320 Q328 284 328 292 V356" fill="none" stroke="#687264" stroke-width="2" marker-end="url(#comparison-arrow)" />
+<path d="M440 252 V316" fill="none" stroke="#687264" stroke-width="2" marker-end="url(#comparison-arrow)" />
+<path d="M728 252 V276 Q728 284 720 284 H560 Q552 284 552 292 V356" fill="none" stroke="#687264" stroke-width="2" marker-end="url(#comparison-arrow)" />
+<path d="M328 436 V504 Q328 512 320 512 H160 Q152 512 152 520 V560" fill="none" stroke="#687264" stroke-width="2" marker-end="url(#comparison-arrow)" />
+<path d="M440 476 V560" fill="none" stroke="#687264" stroke-width="2" marker-end="url(#comparison-arrow)" />
+<path d="M552 436 V504 Q552 512 560 512 H720 Q728 512 728 520 V560" fill="none" stroke="#687264" stroke-width="2" marker-end="url(#comparison-arrow)" />
+<rect x="199.5" y="476" width="49" height="28" fill="#f5f3ee" /><text x="224" y="496" text-anchor="middle" fill="#60675c" font-family="ui-monospace, monospace" font-size="18" font-weight="500"><tspan x="224" dy="0">SAT</tspan></text>
+<rect x="448.5" y="498" width="71" height="28" fill="#f5f3ee" /><text x="484" y="518" text-anchor="middle" fill="#60675c" font-family="ui-monospace, monospace" font-size="18" font-weight="500"><tspan x="484" dy="0">UNSAT</tspan></text>
+<rect x="609.5" y="476" width="93" height="28" fill="#f5f3ee" /><text x="656" y="496" text-anchor="middle" fill="#60675c" font-family="ui-monospace, monospace" font-size="18" font-weight="500"><tspan x="656" dy="0">UNKNOWN</tspan></text>
+<rect x="32" y="156" width="240" height="96" rx="6" fill="#fbfbf7" stroke="#687264" stroke-width="1.5" />
+<text x="48" y="192" text-anchor="start" fill="#242823" font-family="system-ui, sans-serif" font-size="18" font-weight="600"><tspan x="48" dy="0">Original model</tspan></text>
+<text x="48" y="226" text-anchor="start" fill="#60675c" font-family="ui-monospace, monospace" font-size="15" font-weight="400"><tspan x="48" dy="0">f(x) · ARM64 subset</tspan></text>
+<rect x="320" y="156" width="240" height="96" rx="6" fill="#fbfbf7" stroke="#687264" stroke-width="1.5" />
+<text x="336" y="192" text-anchor="start" fill="#242823" font-family="system-ui, sans-serif" font-size="18" font-weight="600"><tspan x="336" dy="0">Edited source</tspan></text>
+<text x="336" y="226" text-anchor="start" fill="#60675c" font-family="ui-monospace, monospace" font-size="15" font-weight="400"><tspan x="336" dy="0">g(x) · your expression</tspan></text>
+<rect x="608" y="156" width="240" height="96" rx="6" fill="#fbfbf7" stroke="#687264" stroke-width="1.5" />
+<text x="624" y="192" text-anchor="start" fill="#242823" font-family="system-ui, sans-serif" font-size="18" font-weight="600"><tspan x="624" dy="0">Declared input domain</tspan></text>
+<text x="624" y="226" text-anchor="start" fill="#60675c" font-family="ui-monospace, monospace" font-size="15" font-weight="400"><tspan x="624" dy="0">D · allowed inputs</tspan></text>
+<path d="M440 316 L664 396 L440 476 L216 396 Z" fill="#f5e8dc" stroke="#ac481b" stroke-width="2" />
+<text x="440" y="376" text-anchor="middle" fill="#ac481b" font-family="ui-monospace, monospace" font-size="14" font-weight="500"><tspan x="440" dy="0">SOLVER QUESTION</tspan></text>
+<text x="440" y="396" text-anchor="middle" fill="#242823" font-family="system-ui, sans-serif" font-size="22" font-weight="600"><tspan x="440" dy="0">Can the edit change output</tspan><tspan x="440" dy="28">for an allowed input?</tspan></text>
+<rect x="32" y="560" width="240" height="144" rx="20" fill="#fbfbf7" stroke="#687264" stroke-width="1.5" />
+<text x="48" y="598" text-anchor="start" fill="#242823" font-family="system-ui, sans-serif" font-size="22" font-weight="600"><tspan x="48" dy="0">Counterexample</tspan></text>
+<text x="48" y="630" text-anchor="start" fill="#60675c" font-family="system-ui, sans-serif" font-size="17" font-weight="400"><tspan x="48" dy="0">A mismatch, with input,</tspan><tspan x="48" dy="25">both outputs and</tspan><tspan x="48" dy="25">its executed model trace.</tspan></text>
+<rect x="320" y="560" width="240" height="144" rx="20" fill="#fbfbf7" stroke="#687264" stroke-width="1.5" />
+<text x="336" y="598" text-anchor="start" fill="#242823" font-family="system-ui, sans-serif" font-size="22" font-weight="600"><tspan x="336" dy="0">Scoped equality</tspan></text>
+<text x="336" y="630" text-anchor="start" fill="#60675c" font-family="system-ui, sans-serif" font-size="17" font-weight="400"><tspan x="336" dy="0">No mismatch exists in this</tspan><tspan x="336" dy="25">model and declared domain.</tspan></text>
+<rect x="608" y="560" width="240" height="144" rx="20" fill="#fbfbf7" stroke="#687264" stroke-width="1.5" />
+<text x="624" y="598" text-anchor="start" fill="#242823" font-family="system-ui, sans-serif" font-size="22" font-weight="600"><tspan x="624" dy="0">No conclusion</tspan></text>
+<text x="624" y="630" text-anchor="start" fill="#60675c" font-family="system-ui, sans-serif" font-size="17" font-weight="400"><tspan x="624" dy="0">The solver did not decide.</tspan><tspan x="624" dy="25">A timeout stays unknown.</tspan></text>
+<text x="32" y="728" text-anchor="start" fill="#60675c" font-family="system-ui, sans-serif" font-size="18" font-weight="400"><tspan x="32" dy="0">Unsupported code is refused before this comparison.</tspan></text>
+<text x="32" y="752" text-anchor="start" fill="#60675c" font-family="system-ui, sans-serif" font-size="18" font-weight="400"><tspan x="32" dy="0">UNSAT does not certify the CPU or the instruction model.</tspan></text>
+</svg>
