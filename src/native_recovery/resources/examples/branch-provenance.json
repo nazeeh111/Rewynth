@@ -1,0 +1,99 @@
+{
+  "origin": "Original controlled fixtures authored with Codex assistance for Rewynth, not third-party source excerpts.",
+  "license": "MIT, project LICENSE applies.",
+  "source": "branch-kernels.c",
+  "source_sha256": "42732c0db176f06a9391c650b4dede65a45b190d2bd68c84f585be0c087903d0",
+  "artifact": "branch-kernels.dylib",
+  "artifact_sha256": "924b18db41f4d4ee065d094a7264ae6f7264c732d3a9675e8f064bec1ba55d5c",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin25.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+  "compile_command": [
+    "/usr/bin/clang",
+    "-O2",
+    "-fomit-frame-pointer",
+    "-fno-stack-protector",
+    "-dynamiclib",
+    "branch-kernels.c",
+    "-o",
+    "branch-kernels.dylib"
+  ],
+  "provenance_note": "The retained original kernels.c and immutable O2 artifact were renamed without byte changes. Compiler commands reproduce code; Mach-O link metadata can change the artifact digest.",
+  "native_evidence": {
+    "scope": "Only owned known fixture artifact, not uploaded artifacts.",
+    "O2_native_reference_comparisons": 7442,
+    "settings": [
+      "O1",
+      "O2",
+      "Os"
+    ],
+    "all_settings_native_reference_comparisons": 22326,
+    "independence": "Three optimization settings of one authored C source, not independent external inputs."
+  },
+  "functions": [
+    {
+      "name": "tone_curve32",
+      "arity": 1,
+      "word_bits": 32,
+      "utility": "piecewise fixed-point luminance transform",
+      "size": 84,
+      "code_sha256": "84290625af8de2d3cadfba16c0f7581e9aa28333da0ce88d5f4109b206fb4d7f",
+      "native_reference_comparisons": 4403,
+      "compiled_branches": true
+    },
+    {
+      "name": "guarded_seed64",
+      "arity": 2,
+      "word_bits": 64,
+      "utility": "reserved-zero table probe seed, if-converted control",
+      "size": 132,
+      "code_sha256": "f04564b57cd42d585556371f0f123519444a60c70d7284952eaa14a529cdd961",
+      "native_reference_comparisons": 471,
+      "compiled_branches": false
+    },
+    {
+      "name": "adaptive_gain32",
+      "arity": 3,
+      "word_bits": 32,
+      "utility": "piecewise unsigned gain, if-converted control",
+      "size": 44,
+      "code_sha256": "c17d7a7d515435d15262f841f2d163c8d287ccc637c5fbeea2daabcb16001b41",
+      "native_reference_comparisons": 911,
+      "compiled_branches": false
+    },
+    {
+      "name": "record_hash64",
+      "arity": 4,
+      "word_bits": 64,
+      "utility": "domain-separated record hash finalization",
+      "size": 120,
+      "code_sha256": "348a3914ead2108696e9043c217695f8dd922c9fcdbc0c5a92b350d69d7ee442",
+      "native_reference_comparisons": 471,
+      "compiled_branches": true
+    },
+    {
+      "name": "guarded_morton32",
+      "arity": 2,
+      "word_bits": 32,
+      "utility": "bounded 16-bit coordinate Morton index",
+      "size": 96,
+      "code_sha256": "67f208708bca0ddd5c2832a8f271449bfa08634bd483b5abcd9cbca230f8221e",
+      "native_reference_comparisons": 727,
+      "compiled_branches": true
+    },
+    {
+      "name": "window_tag64",
+      "arity": 3,
+      "word_bits": 64,
+      "utility": "inclusive-window noncryptographic tag",
+      "size": 100,
+      "code_sha256": "0fc419b2d8b7e2d2b62b696ba169c2aef2080d8f9837fd579a5beb30cd94d961",
+      "native_reference_comparisons": 459,
+      "compiled_branches": true
+    }
+  ],
+  "limits": [
+    "No claim of cryptographic hash quality or uniqueness.",
+    "Morton out-of-range saturation equals one valid coordinate result, not an unambiguous error.",
+    "Unsigned arithmetic wraps at the selected word width.",
+    "Two source functions are if-converted CSEL controls, not compiler branch evidence."
+  ]
+}

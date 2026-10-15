@@ -9,6 +9,20 @@ from .artifacts import Artifact, MAX_ARTIFACT
 from .words import pattern
 
 
+def artifact_selector(parser):
+    parser.add_argument("artifact", type=Path, nargs="?")
+    examples = parser.add_mutually_exclusive_group()
+    examples.add_argument(
+        "--example", action="store_true", help="Use the shipped compiled fixture as data"
+    )
+    examples.add_argument(
+        "--example-wide", action="store_true", help="Use the shipped 64-bit transform fixture as data"
+    )
+    examples.add_argument(
+        "--example-branches", action="store_true", help="Use the shipped bounded conditional-branch fixture as data"
+    )
+
+
 def bounded_operation(request, code, address, name):
     from .server import compute
 
@@ -53,30 +67,10 @@ def main():
     inspect = sub.add_parser(
         "inspect", help="Read an artifact inventory without running it"
     )
-    inspect.add_argument("artifact", type=Path, nargs="?")
-    inspect.add_argument(
-        "--example",
-        action="store_true",
-        help="Use the shipped compiled fixture as data",
-    )
-    inspect.add_argument(
-        "--example-wide",
-        action="store_true",
-        help="Use the shipped 64-bit transform fixture as data",
-    )
+    artifact_selector(inspect)
     for operation in ["recover", "verify", "inverse", "evaluate", "derive_inverse"]:
         child = sub.add_parser(operation)
-        child.add_argument("artifact", type=Path, nargs="?")
-        child.add_argument(
-            "--example",
-            action="store_true",
-            help="Use the shipped compiled fixture as data",
-        )
-        child.add_argument(
-            "--example-wide",
-            action="store_true",
-            help="Use the shipped 64-bit transform fixture as data",
-        )
+        artifact_selector(child)
         child.add_argument(
             "--word-bits",
             type=int,
@@ -110,18 +104,20 @@ def main():
 
             sys.argv = ["rewynth serve", "--port", str(args.port)]
             return serve_main()
-        if sum(bool(v) for v in (args.example, args.example_wide, args.artifact)) != 1:
+        if sum(bool(v) for v in (args.example, args.example_wide, args.example_branches, args.artifact)) != 1:
             raise ValueError(
-                "Select an artifact path, --example or --example-wide, exactly one."
+                "Select an artifact path, --example, --example-wide or --example-branches, exactly one."
             )
         selected_path = (
             Path(__file__).parent
             / (
-                "resources/examples/wide-kernels.dylib"
+                "resources/examples/branch-kernels.dylib"
+                if args.example_branches
+                else "resources/examples/wide-kernels.dylib"
                 if args.example_wide
                 else "resources/examples/kernels.dylib"
             )
-            if args.example or args.example_wide
+            if args.example or args.example_wide or args.example_branches
             else args.artifact
         )
         with selected_path.open("rb") as stream:

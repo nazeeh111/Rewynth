@@ -45,3 +45,8 @@ jobs:
           rewynth derive_inverse --example-wide --function _splitmix64_step --arguments 1 --word-bits 64 > wide-inverse.json
           rewynth evaluate --example-wide --function _splitmix64_step --arguments 1 --word-bits 64 --inputs 0x123456789abcdef0 > wide-evaluate.json
           python -c "import json; f=json.load(open('wide-forward.json')); i=json.load(open('wide-inverse.json')); e=json.load(open('wide-evaluate.json')); assert f['reconstruction']['status']=='verified_model'; assert i['inverse_program']['status']=='verified_inverse_model'; assert e['witness']['output_u64']=='0x161922c645ce50e8'; print('Installed 64-bit recovery, inverse and exact evaluation passed')"
+      - name: Installed conditional recovery and trace
+        run: |
+          rewynth recover --example-branches --function _tone_curve32 --arguments 1 > branches.json
+          rewynth evaluate --example-branches --function _tone_curve32 --arguments 1 --inputs 4096 > branch-trace.json
+          python -c "import json; f=json.load(open('branches.json')); e=json.load(open('branch-trace.json')); assert f['reconstruction']['status']=='verified_model'; assert e['witness']['output_u32']==4095; assert e['witness']['trace'][-1]['kind']=='return'; print('Installed conditional recovery and trace passed')"
