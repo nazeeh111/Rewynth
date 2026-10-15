@@ -50,3 +50,5 @@ jobs:
           rewynth recover --example-branches --function _tone_curve32 --arguments 1 > branches.json
           rewynth evaluate --example-branches --function _tone_curve32 --arguments 1 --inputs 4096 > branch-trace.json
           python -c "import json; f=json.load(open('branches.json')); e=json.load(open('branch-trace.json')); assert f['reconstruction']['status']=='verified_model'; assert e['witness']['output_u32']==4095; assert e['witness']['trace'][-1]['kind']=='return'; print('Installed conditional recovery and trace passed')"
+      - name: Runnable conditional lesson against the installed package
+        run: python examples/conditional_lab.py --output branch-lab
