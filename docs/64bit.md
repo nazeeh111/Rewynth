@@ -12,7 +12,7 @@ Output values outside JavaScript's safe integer range are hexadecimal strings. W
 {"operation":"evaluate","artifact":"<artifact SHA-256>","symbol":"_splitmix64_step","arity":1,"word_bits":64,"inputs":["0x123456789abcdef0"],"domain":[null]}
 ```
 
-Workspace version 2 stores word size, exact textual queries, original bytes and edits. Version 1 is explicitly 32-bit. Reopening never treats old proof evidence as a fresh comparison. Changing word size invalidates the comparison, inverse program and trace.
+Workspace versions 2 and 3 store word size, exact textual queries, original bytes and edits. Version 1 is explicitly 32-bit. Reopening never treats old proof evidence as a fresh comparison. Changing word size invalidates the comparison, inverse program and trace.
 
 ## The real fixture boundary
 
@@ -23,3 +23,5 @@ Prior state zero produces full output `0xe220a8397b1dcdaf`. A derived inverse re
 Proofs apply to the implemented selected-word instruction model. Exact chain binding and both directions of each supported primitive are required for compositional acceptance. Whole nonlinear composition checks can remain UNKNOWN. Native comparisons exercise only identified licensed/owned fixtures and generated C, never an uploaded artifact.
 
 Source and binary hashes, immutable upstream identity and full notices are in `resources/examples/wide-provenance.json` and packaged third-party notices. Do not reuse a fixture digest after recompilation changes its bytes.
+
+Version 3 also stores an optional bounded-memory declaration. [State-transition contracts](state-transitions.md) define logical input order, full post-state comparison and pure C exports. Versions 1 and 2 remain readable as register-only workspaces.

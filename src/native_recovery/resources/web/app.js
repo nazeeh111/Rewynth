@@ -8,6 +8,31 @@ const message = (text) => { $('notice').textContent = text; };
 const formatAddress = (value) => typeof value === 'string' ? value : hex(value);
 const width = () => Number($('word-bits').value);
 const register = () => width() === 64 ? 'x' : 'w';
+const memoryMode = () => $('memory-enabled').checked;
+function memoryDeclaration() {
+  if (!memoryMode()) return undefined;
+  const argument = Number($('memory-argument').value), words = Number($('memory-words').value), arity = Number($('arity').value);
+  if (width() !== 64 || !Number.isInteger(argument) || argument < 0 || argument >= arity || ![1,2,3].includes(words) || arity - 1 + words > 4) throw new Error('Declare one 64-bit pointer and at most four logical inputs.');
+  return {argument, words};
+}
+function inputMapping() {
+  const arity = Number($('arity').value), memory = memoryDeclaration();
+  if (!memory) return Array.from({length: arity}, (_,i) => register() + i);
+  return [...Array.from({length: arity}, (_,i) => i).filter(i => i !== memory.argument).map(i => 'x' + i + ' scalar'), ...Array.from({length: memory.words}, (_,i) => 'memory[' + i + '] / bytes ' + (i*8) + '–' + (i*8+7))];
+}
+function memoryControls() {
+  const arity = Number($('arity').value), previous = Number($('memory-argument').value) || 0;
+  if (width() !== 64) $('memory-enabled').checked = false;
+  $('memory-enabled').disabled = width() !== 64;
+  $('memory-argument').replaceChildren();
+  for (let i = 0; i < arity; i++) { const option = document.createElement('option'); option.value = String(i); option.textContent = 'x' + i + ' pointer'; $('memory-argument').append(option); }
+  $('memory-argument').value = String(Math.min(previous, arity-1));
+  const maximum = Math.min(3, 5-arity);
+  for (const option of $('memory-words').options) option.disabled = Number(option.value) > maximum;
+  $('memory-words').value = String(Math.min(Number($('memory-words').value) || 1, maximum));
+  $('memory-settings').hidden = !memoryMode();
+  $('memory-scope').textContent = memoryMode() ? 'One synthetic pointer, ' + $('memory-words').value + ' consecutive little-endian uint64 words. Inputs list scalars first, then initial memory. Every post-state word is compared. Fixed in-bounds accesses only; no native execution.' : 'Register-only model. Enable bounded memory in 64-bit mode for one explicit pointer argument.';
+}
 function exact(value) {
   if (typeof value === 'bigint') return value;
   if (typeof value === 'number' && Number.isSafeInteger(value)) return BigInt(value);
@@ -28,11 +53,13 @@ function range(signed, bits=width()) {
   return signed ? [-(1n << (n-1n)), (1n << (n-1n))-1n] : [0n, (1n << n)-1n];
 }
 function widthLabels() {
-  $('expression-label').textContent = 'Editable ' + width() + '-bit expression';
-  $('expression-help').textContent = 'x0, x1, x2, x3 · + − * & | ^ << >> · ifelse(), lt(), ult(), asr(). Arithmetic wraps at ' + width() + ' bits; shift counts are masked to 0–' + (width()-1) + '.';
+  const memory = memoryDeclaration();
+  const sampleTransition = memory ? JSON.stringify({return:'x0', memory:Array.from({length:memory.words}, (_,i) => 'x' + (Number($('arity').value)-1+i))}) : '';
+  $('expression-label').textContent = memoryMode() ? 'Editable transition JSON' : 'Editable ' + width() + '-bit expression';
+  $('expression-help').textContent = (memory ? 'JSON with exactly "return" and "memory": ' + sampleTransition + '. Use one expression per declared word. All outputs use the same initial inputs. ' : '') + 'x0, x1, x2, x3 · + − * & | ^ << >> · ifelse(), lt(), ult(), asr(). Arithmetic wraps at ' + width() + ' bits; shift counts are masked to 0–' + (width()-1) + '.';
   $('target-label').textContent = 'Desired ' + register() + '0 result';
   $('run-backward').textContent = 'Run backward from desired ' + register() + '0';
-  $('inverse-help').textContent = 'One input, all ' + width() + ' bits. Derive a reusable inverse from a supported reversible chain, with explicit composition checks.';
+  $('inverse-help').textContent = memoryMode() ? 'Inverse queries and backward programs are unavailable for joint return and memory transitions.' : 'One input, all ' + width() + ' bits. Derive a reusable inverse from a supported reversible chain, with explicit composition checks.';
   for (const option of $('arity').options) option.textContent = option.value + ' · ' + Array.from({length:Number(option.value)}, (_,i) => register()+i).join(', ');
 }
 function base64(bytes) {
@@ -60,10 +87,10 @@ function domains() {
     return lo === lower && hi === upper ? null : {min: width() === 64 ? lo.toString() : Number(lo), max: width() === 64 ? hi.toString() : Number(hi), signed};
   });
 }
-function settings() { return {symbol: $('symbol').value, arity: Number($('arity').value), word_bits: width(), domain: domains()}; }
+function settings() { const memory = memoryDeclaration(); return {symbol: $('symbol').value, arity: Number($('arity').value), word_bits: width(), domain: domains(), ...(memory ? {memory} : {})}; }
 function workspace() {
   if (!artifact) return null;
-  return {schema: 'rewynth.workspace', version: 2, artifact: {name: artifactName, sha256: artifact.sha256, data: artifactData}, settings: settings(), expression: $('expression').value, queries: {inputs: Array.from({length: Number($('arity').value)}, (_,i) => $('arg-' + i).value.slice(0,24)), target: $('target').value.slice(0,24)}};
+  return {schema: 'rewynth.workspace', version: 3, artifact: {name: artifactName, sha256: artifact.sha256, data: artifactData}, settings: settings(), expression: $('expression').value, queries: {inputs: inputMapping().map((_,i) => $('arg-' + i).value), target: $('target').value}};
 }
 function store(key, value) {
   return new Promise((resolve, reject) => {
@@ -84,11 +111,11 @@ async function persist() {
 }
 function scheduleSave() { clearTimeout(persistTimer); persistTimer = setTimeout(persist, 350); }
 function inputFields(savedDomains) {
-  const arity = Number($('arity').value);
+  const mapping = inputMapping();
   $('domains').replaceChildren(); $('inputs').replaceChildren();
-  for (let i = 0; i < arity; i++) {
+  for (let i = 0; i < mapping.length; i++) {
     const row = document.createElement('div'), label = document.createElement('label');
-    label.textContent = 'x' + i + ' / ' + register() + i; row.append(label);
+    label.textContent = 'x' + i + ' / ' + mapping[i]; row.append(label);
     const bounds = document.createElement('div'); bounds.className = 'bounds';
     const low = document.createElement('input'), high = document.createElement('input');
     low.dataset.min = ''; high.dataset.max = ''; low.setAttribute('aria-label', 'x' + i + ' minimum'); high.setAttribute('aria-label', 'x' + i + ' maximum');
@@ -97,7 +124,7 @@ function inputFields(savedDomains) {
     const sl = document.createElement('label'), check = document.createElement('input'); sl.className = 'signed'; check.type = 'checkbox'; check.checked = d?.signed ?? false; sl.append(check, ' Signed interpretation'); row.append(sl);
     check.addEventListener('change', () => { const bounds = range(check.checked); low.value = bounds[0].toString(); high.value = bounds[1].toString(); invalidate(); });
     low.addEventListener('change', invalidate); high.addEventListener('change', invalidate); $('domains').append(row);
-    const il = document.createElement('label'), input = document.createElement('input'); il.textContent = 'x' + i; input.id = 'arg-' + i; input.value = '0'; input.inputMode = 'numeric'; il.htmlFor = input.id; $('inputs').append(il, input);
+    const il = document.createElement('label'), input = document.createElement('input'); il.textContent = 'x' + i + ' / ' + mapping[i]; input.id = 'arg-' + i; input.value = '0'; input.inputMode = 'numeric'; il.htmlFor = input.id; $('inputs').append(il, input);
   }
 }
 async function cancel() {
@@ -108,7 +135,9 @@ async function cancel() {
 }
 function working(active) {
   $('cancel').hidden = !active;
-  for (const id of ['recover','verify','inverse','evaluate','derive_inverse','open','example','example-wide','example-branches','reopen','symbol','arity','word-bits']) $(id).disabled = active || (!artifact && !['open','example','example-wide','example-branches','reopen','arity','word-bits'].includes(id));
+  for (const id of ['recover','verify','inverse','evaluate','derive_inverse','open','example','example-wide','example-branches','example-memory','reopen','symbol','arity','word-bits','memory-enabled','memory-argument','memory-words']) $(id).disabled = active || (!artifact && !['open','example','example-wide','example-branches','example-memory','reopen','arity','word-bits','memory-enabled','memory-argument','memory-words'].includes(id));
+  if (width() !== 64) $('memory-enabled').disabled = true;
+  if (memoryMode()) { $('inverse').disabled = true; $('derive_inverse').disabled = true; }
   for (const input of $('domains').querySelectorAll('input')) input.disabled = active;
 }
 function invalidate() {
@@ -117,53 +146,72 @@ function invalidate() {
   const hasDraft = Boolean(artifact && $('expression').value.trim());
   $('recovered').hidden = !hasDraft; $('empty').hidden = hasDraft; $('trace-panel').hidden = true; $('witness').textContent = ''; $('method').textContent = 'Settings changed · unverified';
   $('proof').className = 'proof unknown'; $('proof').textContent = 'Settings changed. Compare this draft against the selected function and domain before relying on it.'; $('c-source').textContent = 'Verify this draft to generate its portable C.'; $('assembly').replaceChildren(); $('assumptions').textContent = 'Recompute to inspect current assumptions.'; $('reset-expression').disabled = true;
-  $('verify').disabled = !hasDraft; $('inverse').disabled = !artifact; $('evaluate').disabled = !artifact;
+  $('verify').disabled = !hasDraft; $('inverse').disabled = !artifact || memoryMode(); $('evaluate').disabled = !artifact;
   scheduleSave();
 }
-async function openBytes(data, name, restore) {
+async function openBytes(data, name, restore, defaults={}) {
   await cancel();
   if (artifact && db) try { await store('previous', workspace()); } catch { message('Recovery copy could not be saved. Download the current workspace first.'); return; }
   const entered = await post('/api/artifacts', {data});
   if (restore && entered.sha256 !== restore.artifact.sha256) throw new Error('Workspace artifact digest does not match its saved identity.');
   if (restore && !entered.functions.some((f) => f.name === restore.settings.symbol && f.supported_size)) throw new Error('Saved function is missing or exceeds the supported byte budget. Original workspace was not replaced.');
   artifact = entered; artifactData = data; artifactName = name.slice(0, 256);
-  if (!restore) $('expression').value = '';
+  $('expression').value = restore?.expression ?? '';
   const identity = $('identity'); identity.replaceChildren();
   const title = document.createElement('strong'); title.textContent = artifactName; identity.append(title, document.createTextNode(entered.format + ' · ' + entered.size.toLocaleString() + ' bytes'), document.createElement('br'), document.createTextNode(entered.sha256));
   $('symbol').replaceChildren();
   for (const f of artifact.functions) { const option = document.createElement('option'); option.value = f.name; option.textContent = f.name + ' · ' + f.size + ' B'; option.disabled = !f.supported_size; $('symbol').append(option); }
   if (restore) { $('symbol').value = restore.settings.symbol; $('arity').value = restore.settings.arity; $('word-bits').value = restore.settings.word_bits ?? 32; if (!$('symbol').value) throw new Error('Saved function is missing from the artifact.'); }
-  else { $('arity').value = '1'; }
-  widthLabels(); inputFields(restore?.settings.domain); invalidate(); working(false);
+  else { $('arity').value = String(defaults.arity ?? 1); if (defaults.word_bits) $('word-bits').value = String(defaults.word_bits); if (defaults.symbol) $('symbol').value = defaults.symbol; }
+  const memory = restore?.settings.memory ?? defaults.memory;
+  $('memory-enabled').checked = Boolean(memory);
+  memoryControls();
+  if (memory) { $('memory-argument').value = String(memory.argument); $('memory-words').value = String(memory.words); }
+  memoryControls(); widthLabels(); inputFields(restore?.settings.domain); invalidate(); working(false);
   if (restore?.queries) { restore.queries.inputs.forEach((v,i) => { $('arg-' + i).value = v; }); $('target').value = restore.queries.target; }
   if (restore && restore.expression.trim()) {
     $('expression').value = restore.expression; $('recovered').hidden = false; $('empty').hidden = true;
     $('method').textContent = 'Saved edit · unverified'; $('proof').className = 'proof unknown'; $('proof').textContent = 'Saved expression restored. Run a new comparison; saved evidence is not a fresh proof.';
     $('c-source').textContent = 'Verify this saved expression to generate its portable C.';
     $('assembly').replaceChildren(); $('assumptions').textContent = 'Recompute the model to inspect current instruction and input assumptions.';
-    $('reset-expression').disabled = true; $('verify').disabled = false; $('inverse').disabled = false; $('evaluate').disabled = false;
+    $('reset-expression').disabled = true; $('verify').disabled = false; $('inverse').disabled = memoryMode(); $('evaluate').disabled = false;
   }
-  message('Artifact read as data. Select the function, argument count and relevant input domain, then recover.');
+  message('Artifact read as data. Select the function, arguments, optional memory and input domain, then recover.');
   await persist();
 }
-async function loadWorkspace(value) {
-  if (!value || value.schema !== 'rewynth.workspace' || ![1,2].includes(value.version) || !value.artifact || typeof value.artifact.name !== 'string' || !/^[0-9a-f]{64}$/.test(value.artifact.sha256) || typeof value.artifact.data !== 'string' || value.artifact.data.length > 44739244 || !value.settings || ![1,2,3,4].includes(value.settings.arity) || typeof value.settings.symbol !== 'string' || !Array.isArray(value.settings.domain) || value.settings.domain.length !== value.settings.arity || typeof value.expression !== 'string' || value.expression.length > 65536) throw new Error('Invalid or unsupported workspace. Original bytes were not replaced.');
+function validateWorkspace(value) {
+  if (!value || value.schema !== 'rewynth.workspace' || ![1,2,3].includes(value.version) || !value.artifact || typeof value.artifact.name !== 'string' || value.artifact.name.length > 256 || !/^[0-9a-f]{64}$/.test(value.artifact.sha256) || typeof value.artifact.data !== 'string' || !value.artifact.data.length || value.artifact.data.length > 44739244 || !value.settings || ![1,2,3,4].includes(value.settings.arity) || typeof value.settings.symbol !== 'string' || !value.settings.symbol.length || value.settings.symbol.length > 4096 || !Array.isArray(value.settings.domain) || typeof value.expression !== 'string' || value.expression.length > 65536) throw new Error('Invalid or unsupported workspace. Original bytes were not replaced.');
   const bits = value.version === 1 ? 32 : value.settings.word_bits;
   if (![32,64].includes(bits)) throw new Error('Invalid saved word size.');
   if (value.version === 1 && value.settings.word_bits !== undefined && value.settings.word_bits !== 32) throw new Error('Version 1 workspaces contain 32-bit words only.');
+  const memory = value.settings.memory;
+  let count = value.settings.arity;
+  if (Object.hasOwn(value.settings, 'memory')) {
+    if (value.version !== 3 || bits !== 64 || !memory || Array.isArray(memory) || Object.keys(memory).sort().join(',') !== 'argument,words' || !Number.isInteger(memory.argument) || memory.argument < 0 || memory.argument >= value.settings.arity || ![1,2,3].includes(memory.words) || value.settings.arity - 1 + memory.words > 4) throw new Error('Invalid saved memory declaration. Original bytes were not replaced.');
+    count = value.settings.arity - 1 + memory.words;
+  }
+  if (value.settings.domain.length !== count) throw new Error('Saved domains do not match the logical inputs.');
   for (const d of value.settings.domain) {
     if (d === null) continue;
-    if (!d || typeof d.signed !== 'boolean' || (bits === 64 && (typeof d.min !== 'string' || typeof d.max !== 'string'))) throw new Error('Invalid saved input domain.');
+    if (!d || Array.isArray(d) || Object.keys(d).sort().join(',') !== 'max,min,signed' || typeof d.signed !== 'boolean' || (bits === 64 && (typeof d.min !== 'string' || typeof d.max !== 'string')) || (bits === 32 && (typeof d.min !== 'number' || typeof d.max !== 'number'))) throw new Error('Invalid saved input domain.');
     const lo = exact(d.min), hi = exact(d.max), [lower,upper] = range(d.signed,bits);
     if (lo > hi || lo < lower || hi > upper) throw new Error('Invalid saved input domain.');
   }
-  if (value.queries && (!Array.isArray(value.queries.inputs) || value.queries.inputs.length !== value.settings.arity || value.queries.inputs.some(v => typeof v !== 'string' || v.length > 24) || typeof value.queries.target !== 'string' || value.queries.target.length > 24)) throw new Error('Invalid saved query controls.');
+  if (Object.hasOwn(value, 'queries') && (!value.queries || !Array.isArray(value.queries.inputs) || value.queries.inputs.length !== count || value.queries.inputs.some(v => typeof v !== 'string' || v.length > 80) || typeof value.queries.target !== 'string' || value.queries.target.length > 80)) throw new Error('Invalid saved query controls.');
+  return value;
+}
+async function loadWorkspace(value) {
+  validateWorkspace(value);
   await openBytes(value.artifact.data, value.artifact.name, value);
+}
+function postMemory(witness, prefix='memory_u') {
+  const values = wordField(witness, prefix);
+  return Array.isArray(values) ? values.map((value,i) => 'memory[' + i + '] = ' + hex(value)).join(', ') : '';
 }
 function trace(witness, title) {
   if (!witness) return;
   $('trace-panel').hidden = false;
-  $('trace-caption').textContent = title + ' · inputs ' + wordField(witness,'inputs_u').map(hex).join(', ') + ' · output ' + hex(wordField(witness,'output_u') ?? wordField(witness,'original_output_u'));
+  $('trace-caption').textContent = title + ' · inputs ' + wordField(witness,'inputs_u').map(hex).join(', ') + ' · output ' + hex(wordField(witness,'output_u') ?? wordField(witness,'original_output_u')) + (memoryMode() ? ' · post-state ' + (postMemory(witness) || postMemory(witness,'original_memory_u')) : '');
   $('trace').replaceChildren();
   for (const row of witness.trace || []) {
     const tr = document.createElement('tr');
@@ -175,8 +223,9 @@ function trace(witness, title) {
 }
 function proof(verification) {
   const p = $('proof'); p.className = 'proof';
-  if (verification?.status === 'unsat') p.textContent = 'No counterexample exists within the declared domain in the implemented ARM64 model. This does not verify the lifter or calling convention against every CPU execution.';
-  else if (verification?.status === 'sat') { p.classList.add('fail'); const w = verification.counterexample; p.textContent = 'Counterexample found. Original ' + hex(wordField(w,'original_output_u')) + ' differs from edit ' + hex(wordField(w,'candidate_output_u')) + '.'; trace(w, 'Contradicting input'); }
+  $('trace-panel').hidden = true; $('witness').textContent = '';
+  if (verification?.status === 'unsat') p.textContent = 'No counterexample exists for ' + (memoryMode() ? 'the return and every declared post-state word' : 'the return') + ' within the declared domain in the implemented ARM64 model. This does not verify the lifter or calling convention against every CPU execution.';
+  else if (verification?.status === 'sat') { p.classList.add('fail'); const w = verification.counterexample; p.textContent = memoryMode() ? 'Counterexample found. Changed: ' + (w.differences || []).join(', ') + '.\nOriginal return ' + hex(wordField(w,'original_output_u')) + '; edit return ' + hex(wordField(w,'candidate_output_u')) + '.\nOriginal post-state: ' + postMemory(w,'original_memory_u') + '.\nEdit post-state: ' + postMemory(w,'candidate_memory_u') + '.' : 'Counterexample found. Original ' + hex(wordField(w,'original_output_u')) + ' differs from edit ' + hex(wordField(w,'candidate_output_u')) + '.'; trace(w, 'Contradicting input'); }
   else { p.classList.add('unknown'); p.textContent = 'No equivalence conclusion: ' + (verification?.reason || 'Unsupported or incomplete synthesis.'); }
 }
 function render(value) {
@@ -193,11 +242,11 @@ function render(value) {
     $('assembly').replaceChildren();
     for (const row of value.model.instructions) { const tr = document.createElement('tr'); for (const v of [formatAddress(row.address),row.assembly,row.bytes_hex]) { const td = document.createElement('td'); td.textContent = v; tr.append(td); } $('assembly').append(tr); }
     $('assumptions').textContent = JSON.stringify({assumptions: value.model.assumptions, synthesis: r}, null, 2);
-    proof(r.verification); $('verify').disabled = false; $('inverse').disabled = false; $('evaluate').disabled = false;
-    message('Source recovered from these instruction bytes. Edit the expression, challenge it, or solve backward from a result.');
-  } else if (value.kind === 'verify') { generatedSource = value.source; $('c-source').textContent = value.source; proof(value.verification); message('Edit compared against the original model with the same declared domain.'); }
+    proof(r.verification); $('verify').disabled = false; $('inverse').disabled = memoryMode(); $('evaluate').disabled = false;
+    message(memoryMode() ? 'Transition recovered. Edit return and post-memory together, then compare every output.' : 'Source recovered from these instruction bytes. Edit the expression, challenge it, or solve backward from a result.');
+  } else if (value.kind === 'verify') { $('method').textContent = memoryMode() ? 'Joint state comparison' : 'Edit comparison'; generatedSource = value.source; $('c-source').textContent = value.source; proof(value.verification); message('Edit compared against the original model with the same declared domain.'); }
   else if (value.kind === 'inverse') { const q = value.query; $('witness').textContent = q.status === 'sat' ? 'Input found: ' + wordField(q.witness,'inputs_u').map(hex).join(', ') : q.status === 'unsat' ? 'No input in the declared domain produces ' + hex(wordField(q,'target_u')) + '.' : 'Unknown: ' + q.reason; trace(q.witness, 'Inverse query witness'); message('Output constraint checked in the declared model and domain: ' + q.status + '.'); }
-  else if (value.kind === 'evaluate') { $('witness').textContent = register() + '0 = ' + hex(wordField(value.witness,'output_u')) + ' / ' + exact(wordField(value.witness,'output_u')).toString(); trace(value.witness, 'Original model execution'); message('Original instruction model evaluated with exact ' + width() + '-bit values.'); }
+  else if (value.kind === 'evaluate') { $('witness').textContent = register() + '0 = ' + hex(wordField(value.witness,'output_u')) + ' / ' + exact(wordField(value.witness,'output_u')).toString() + (memoryMode() ? '\nPost-state: ' + postMemory(value.witness) : ''); trace(value.witness, 'Original model execution'); message('Original instruction model evaluated with exact ' + width() + '-bit values.'); }
   else if (value.kind === 'derive_inverse') {
     const inverse = value.inverse_program;
     if (!value.source || inverse.status !== 'verified_inverse_model') { message('No inverse program claimed: ' + (inverse.reason || inverse.status)); return; }
@@ -212,10 +261,11 @@ function render(value) {
   scheduleSave();
 }
 async function run(operation) {
+  if (memoryMode() && ['inverse','derive_inverse'].includes(operation)) throw new Error('Inverse operations are unavailable for memory transitions.');
   const request = {artifact: artifact.sha256, ...settings(), operation};
   if (operation === 'verify') request.expression = $('expression').value;
   if (operation === 'inverse') request.target = number($('target').value);
-  if (operation === 'evaluate') request.inputs = Array.from({length: request.arity}, (_,i) => number($('arg-' + i).value));
+  if (operation === 'evaluate') request.inputs = inputMapping().map((_,i) => number($('arg-' + i).value));
   const thisGeneration = ++generation; working(true); message('Analyzing the selected byte span…');
   try {
     const started = await post('/api/jobs', request);
@@ -228,17 +278,23 @@ async function run(operation) {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
     if (generation === thisGeneration) throw new Error('Analysis did not return within its deadline.');
-  } finally { if (generation === thisGeneration) { activeJob = null; working(false); if (!$('recovered').hidden) { $('verify').disabled = false; $('inverse').disabled = false; $('evaluate').disabled = false; } } }
+  } finally { if (generation === thisGeneration) { activeJob = null; working(false); if (!$('recovered').hidden) { $('verify').disabled = false; $('inverse').disabled = memoryMode(); $('evaluate').disabled = false; } } }
 }
 function action(id, fn) { $(id).addEventListener('click', async () => { try { await fn(); } catch (error) { message(error.message); } }); }
 action('open', () => $('artifact-file').click()); action('reopen', () => $('workspace-file').click());
-action('example', async () => { $('word-bits').value = '32'; const response = await fetch('/example'); if (!response.ok) throw new Error('Example artifact unavailable.'); await openBytes(base64(new Uint8Array(await response.arrayBuffer())), 'Image, hash and bitfield kernels · clang ARM64'); $('symbol').value = '_kernel_clamp'; invalidate(); message('Real compiled kernels loaded. Clamp is selected with one argument. Luma requires three arguments and RGB bounds 0–255. Hash and reverse use one, mixed arithmetic two, bitfield four.'); });
-action('example-wide', async () => { const response = await fetch('/example-wide'); if (!response.ok) throw new Error('Wide example artifact unavailable.'); $('word-bits').value = '64'; await openBytes(base64(new Uint8Array(await response.arrayBuffer())), '64-bit state and bit transforms · clang ARM64'); $('symbol').value = '_splitmix64_step'; invalidate(); message('64-bit compiled transforms loaded. The pure SplitMix64 step maps a prior state to one full output. Derive its inverse to recover that prior state.'); });
-action('example-branches', async () => { const response = await fetch('/example-branches'); if (!response.ok) throw new Error('Branching example artifact unavailable.'); $('word-bits').value = '32'; $('arity').value = '1'; await openBytes(base64(new Uint8Array(await response.arrayBuffer())), 'Conditional integer kernels · clang ARM64'); $('symbol').value = '_tone_curve32'; invalidate(); message('Branching kernels loaded. Tone curve uses one 32-bit input: try 256, 1024 and 5000 to trace its different returns. Morton uses two 32-bit inputs; window tag uses three 64-bit inputs; record hash uses four 64-bit inputs.'); });
+async function openExample(path, name, defaults) {
+  const response = await fetch(path); if (!response.ok) throw new Error('Example artifact unavailable.');
+  await openBytes(base64(new Uint8Array(await response.arrayBuffer())), name, undefined, defaults);
+}
+action('example', async () => { await openExample('/example', 'Image, hash and bitfield kernels · clang ARM64', {word_bits:32, symbol:'_kernel_clamp'}); message('Real compiled kernels loaded. Clamp is selected with one argument. Luma requires three arguments and RGB bounds 0–255. Hash and reverse use one, mixed arithmetic two, bitfield four.'); });
+action('example-wide', async () => { await openExample('/example-wide', '64-bit state and bit transforms · clang ARM64', {word_bits:64, symbol:'_splitmix64_step'}); message('64-bit compiled transforms loaded. The pure SplitMix64 step maps a prior state to one full output. Derive its inverse to recover that prior state.'); });
+action('example-branches', async () => { await openExample('/example-branches', 'Conditional integer kernels · clang ARM64', {word_bits:32, symbol:'_tone_curve32'}); message('Branching kernels loaded. Tone curve uses one 32-bit input: try 256, 1024 and 5000 to trace its different returns. Morton uses two 32-bit inputs; window tag uses three 64-bit inputs; record hash uses four 64-bit inputs.'); });
+action('example-memory', async () => { await openExample('/example-memory', 'PCG32 state transition · original compiled ARM64', {word_bits:64, arity:1, memory:{argument:0, words:2}, symbol:'_pcg32_random_r'}); $('arg-0').value = '0x853c49e6748fea9b'; $('arg-1').value = '0xda3e39cb94b95bdb'; scheduleSave(); message('PCG32 loaded as data. x0 and x1 are initial state and increment. Recover return plus both post-state words; no artifact is executed natively.'); });
 $('artifact-file').addEventListener('change', async (event) => { const file = event.target.files[0]; try { if (!file) return; if (file.size > 33554432) throw new Error('Artifact exceeds 32 MiB.'); await openBytes(base64(new Uint8Array(await file.arrayBuffer())),file.name); } catch (e) { message(e.message); } finally { event.target.value = ''; } });
 $('workspace-file').addEventListener('change', async (event) => { const file = event.target.files[0]; try { if (!file) return; if (file.size > 45*1024*1024) throw new Error('Workspace exceeds 45 MiB.'); await loadWorkspace(JSON.parse(await file.text())); } catch (e) { message(e.message); } finally { event.target.value = ''; } });
-$('word-bits').addEventListener('change', () => { widthLabels(); inputFields(); invalidate(); });
-$('symbol').addEventListener('change', invalidate); $('arity').addEventListener('change', () => { inputFields(); invalidate(); });
+$('word-bits').addEventListener('change', () => { memoryControls(); widthLabels(); inputFields(); invalidate(); });
+$('symbol').addEventListener('change', invalidate); $('arity').addEventListener('change', () => { memoryControls(); widthLabels(); inputFields(); invalidate(); });
+for (const id of ['memory-enabled','memory-argument','memory-words']) $(id).addEventListener('change', () => { memoryControls(); widthLabels(); inputFields(); invalidate(); });
 $('expression').addEventListener('input', () => { cancel(); generatedSource = null; lastEvidence = null; $('proof').className = 'proof unknown'; $('proof').textContent = 'Expression changed. The previous comparison does not apply to this edit.'; $('c-source').textContent = 'Verify the current expression to generate its portable C.'; scheduleSave(); });
 action('recover', () => run('recover')); action('verify', () => run('verify')); action('inverse', () => run('inverse')); action('evaluate', () => run('evaluate')); action('cancel', async () => { await cancel(); message('Analysis cancelled. No new conclusion.'); });
 action('derive_inverse', () => run('derive_inverse'));
@@ -251,11 +307,11 @@ $('inverse-target').addEventListener('input', () => { $('target').value = $('inv
 $('inputs').addEventListener('input', scheduleSave);
 action('reset-expression', () => { $('expression').value = recoveredExpression || ''; $('expression').dispatchEvent(new Event('input')); });
 action('save', () => { const w = workspace(); if (!w) throw new Error('Open an artifact first.'); download('workspace.rewynth', JSON.stringify(w, null, 2)); message('Workspace downloaded with original bytes and editable settings. Proofs are recomputed after reopening.'); });
-action('export-c', async () => { if (!generatedSource) await run('verify'); if (!generatedSource) throw new Error('Current expression did not generate C.'); download('recovered.c', '/* Artifact SHA256: ' + artifact.sha256 + '\n   Model scope: pure ' + width() + '-bit ARM64 register function, declared domain only.\n   This export is reconstructed source, not a native equivalence certificate. */\n' + generatedSource, 'text/plain'); });
+action('export-c', async () => { if (!generatedSource) await run('verify'); if (!generatedSource) throw new Error('Current expression did not generate C.'); download('recovered.c', '/* Artifact SHA256: ' + artifact.sha256 + '\n   Model scope: ' + (memoryMode() ? 'pure transition struct: architectural return and every declared uint64 memory word; not a binary ABI replacement' : 'pure ' + width() + '-bit ARM64 register function') + ', declared domain only.\n   This export is reconstructed source, not a native equivalence certificate. */\n' + generatedSource, 'text/plain'); });
 action('export-evidence', () => { if (!lastEvidence) throw new Error('Run a new query to produce current evidence.'); download('evidence.json', JSON.stringify(lastEvidence, null, 2)); });
 try {
   token = (await (await fetch('/api/bootstrap')).json()).token;
-  widthLabels(); inputFields(); $('verify').disabled = true;
+  memoryControls(); widthLabels(); inputFields(); $('verify').disabled = true;
   const request = indexedDB.open('rewynth', 1); request.onupgradeneeded = () => request.result.createObjectStore('workspace');
   db = await new Promise((resolve,reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
   const previous = await read('current');

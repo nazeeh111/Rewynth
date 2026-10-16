@@ -72,3 +72,14 @@ and related and neighboring rights to this software to the public domain
 worldwide. This software is distributed without any warranty.
 
 See <http://creativecommons.org/publicdomain/zero/1.0/>. */
+
+## PCG32 original state-transition example
+
+Copyright 2014 Melissa O'Neill. Original pcg_basic.c and pcg_basic.h from
+imneme/pcg-c-basic revision bc39cd76ac3d541e618606bcc6e1e5ba5e5e6aa3
+are preserved as pcg-basic-upstream.c and pcg_basic.h. The shipped pcg-basic.o
+is compiled locally from those unchanged sources. Apache License 2.0 applies
+to these files and the derived object; the complete license is retained in
+src/native_recovery/resources/examples/pcg-APACHE-2.0.txt. The upstream source
+notice is preserved. This example is not an upstream defect or endorsement.
+Rewynth's original implementation remains under its existing MIT license.

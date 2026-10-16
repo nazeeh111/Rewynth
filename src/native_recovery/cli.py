@@ -21,6 +21,9 @@ def artifact_selector(parser):
     examples.add_argument(
         "--example-branches", action="store_true", help="Use the shipped bounded conditional-branch fixture as data"
     )
+    examples.add_argument(
+        "--example-memory", action="store_true", help="Read the shipped original PCG32 object as data"
+    )
 
 
 def bounded_operation(request, code, address, name):
@@ -80,6 +83,8 @@ def main():
         )
         child.add_argument("--function", required=True)
         child.add_argument("--arguments", type=int, choices=range(1, 5), required=True)
+        child.add_argument("--memory-argument", type=int, help="Opt into one pointer register, indexed from zero; requires --memory-words")
+        child.add_argument("--memory-words", type=int, help="Declare 1–3 little-endian uint64 words; inputs become scalars then initial memory words")
         child.add_argument(
             "--domain",
             help="JSON list of null or {min,max,signed} entries; omitted means all patterns of the selected word size",
@@ -104,20 +109,22 @@ def main():
 
             sys.argv = ["rewynth serve", "--port", str(args.port)]
             return serve_main()
-        if sum(bool(v) for v in (args.example, args.example_wide, args.example_branches, args.artifact)) != 1:
+        if sum(bool(v) for v in (args.example, args.example_wide, args.example_branches, args.example_memory, args.artifact)) != 1:
             raise ValueError(
-                "Select an artifact path, --example, --example-wide or --example-branches, exactly one."
+                "Select an artifact path or one --example option, exactly one."
             )
         selected_path = (
             Path(__file__).parent
             / (
-                "resources/examples/branch-kernels.dylib"
+                "resources/examples/pcg-basic.o"
+                if args.example_memory
+                else "resources/examples/branch-kernels.dylib"
                 if args.example_branches
                 else "resources/examples/wide-kernels.dylib"
                 if args.example_wide
                 else "resources/examples/kernels.dylib"
             )
-            if args.example or args.example_wide or args.example_branches
+            if args.example or args.example_wide or args.example_branches or args.example_memory
             else args.artifact
         )
         with selected_path.open("rb") as stream:
@@ -132,6 +139,10 @@ def main():
                 "arity": args.arguments,
                 "word_bits": args.word_bits,
             }
+            if args.memory_argument is not None or args.memory_words is not None:
+                if args.memory_argument is None or args.memory_words is None:
+                    raise ValueError("Supply both --memory-argument and --memory-words.")
+                request["memory"] = {"argument": args.memory_argument, "words": args.memory_words}
             if args.domain:
                 request["domain"] = json.loads(args.domain)
             if args.command == "verify":

@@ -1,12 +1,16 @@
 # Rewynth
 
-**Turn compiled integer behavior into source you can run forward or backward.**
+**Recover compiled behavior. Catch edits that break the next call.**
+
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml) [![Local ARM64 analysis](https://img.shields.io/badge/ARM64-local_analysis-7259D9)](docs/state-transitions.md) [![Verify](https://github.com/nazeeh111/Rewynth/actions/workflows/ci.yml/badge.svg)](https://github.com/nazeeh111/Rewynth/actions/workflows/ci.yml) [![MIT](https://img.shields.io/badge/License-MIT-45474B)](LICENSE)
 
 Rewynth is a local laboratory for recovering selected ARM64 functions, editing their semantics, finding counterexamples and deriving reusable inverse programs. It reads the original machine instructions as data. No model API, account or cloud service is required.
 
-The shipped demonstrations reconstruct image-processing kernels, branching integer transforms and an xxHash mixing function from actual compiled bytes. Branching examples retain guards, multiple returns and shared exits in editable source. A backward program derived from the mixer computes an original 32-bit input from its output without making a new solver query. This reverses the **avalanche transform**, not the complete variable-length xxHash algorithm.
+Declare a small state buffer and recover its return plus every post-state word. An edit can return the same value but skip an update needed by the next call. Joint comparison exposes that counterexample. The complete [state-transition lesson](docs/state-transitions.md) uses the unchanged PCG32 routine compiled locally from independently authored source.
 
-![Actual installed Rewynth workbench](docs/workbench.png)
+The other shipped demonstrations reconstruct image-processing kernels, branching integer transforms and an xxHash mixing function from actual compiled bytes. Branching examples retain guards, multiple returns and shared exits in editable source. A backward program derived from the mixer computes an original 32-bit input from its output without making a new solver query. This reverses the **avalanche transform**, not the complete variable-length xxHash algorithm.
+
+![Actual Rewynth comparison: same return, different next state](docs/state-workbench.png)
 
 ## Run it
 
@@ -20,11 +24,21 @@ python3 -m venv .venv
 .venv/bin/rewynth serve
 ```
 
-Open `http://127.0.0.1:6343/` and choose **Load real compiled example**. There is also a wheel on the [release page](https://github.com/nazeeh111/Rewynth/releases); install that downloaded wheel inside a virtual environment instead of cloning.
+Open `http://127.0.0.1:6343/` and choose **Load PCG32 bounded state example**. There is also a wheel on the [release page](https://github.com/nazeeh111/Rewynth/releases); install that downloaded wheel inside a virtual environment instead of cloning.
 
 To inspect your own artifact, use a thin, little-endian ARM64 Mach-O or ELF with named code symbols. Select the function and explicitly declare its 32- or 64-bit word size and one to four argument registers. Narrow the input domain when the intended use requires it. The workbench binds results to both artifact and function-byte digests.
 
-## A complete experiment
+## Compare a stateful edit
+
+Recover the PCG32 example. In the editable JSON, replace the first `memory` expression with `"x0"` and keep the return unchanged. Choose **Find a counterexample**: both returns agree, but `memory[0]` differs. Reset the edit, trace your inputs, export the pure transition C, or save the workspace.
+
+```sh
+.venv/bin/python examples/state_lab.py --output state-lab
+```
+
+This runnable lesson produces recovered source, the lost-store control and evidence. It reads the artifact as data. The original library has no demonstrated bug; the lost update is our edit. [Memory declarations, input order, safe edits, export and limits](docs/state-transitions.md).
+
+## A register-only experiment
 
 1. Select `_kernel_avalanche`, one argument, all input patterns. Recover its editable source and inspect the actual instructions.
 2. Choose **Derive inverse program**. Inspect the extracted reversible chain and its proof records.
@@ -46,7 +60,7 @@ rewynth derive_inverse --example-wide --function _splitmix64_step --arguments 1 
 rewynth evaluate --example-wide --function _splitmix64_step --arguments 1 --word-bits 64 --inputs 0x123456789abcdef0
 ```
 
-[Word-width, exact JSON and workspace contracts](docs/64bit.md) describe the interfaces. Version 1 workspaces reopen as 32-bit; new version 2 workspaces retain the selected width and exact query text. The original 32-bit example is unchanged.
+[Word-width, exact JSON and workspace contracts](docs/64bit.md) describe the interfaces. Version 1 workspaces reopen as 32-bit; new version 3 workspaces retain the selected width, memory declaration and exact query text; version 2 remains readable. The original 32-bit example is unchanged.
 
 ## Recover a function with branches
 
@@ -89,7 +103,7 @@ saves actual results; this figure explains their scope.
 
 **Recovery:** Capstone decodes the selected instructions. Rewynth translates its supported 32- and 64-bit register operations into Z3 expressions over bit-vectors (fixed-width machine words), preserving arithmetic flags and conditions. Compact semantic families solve for missing parameters and refine failed hypotheses using solver-produced counterexamples. A general bit-linear learner probes basis vectors, groups the inferred mask/shift/XOR contributions, then checks the complete candidate. Nonlinear functions use a bounded general semantics-to-source fallback. Recovered source uses prior-only bindings to keep shared expressions readable.
 
-**Falsification:** the solver asks whether an input inside the explicit domain makes the original model and edited source produce different output bits. A satisfiable query returns the input, both outputs and a register trace. SAT means a contradicting input exists; UNSAT means no such input exists in the declared model and domain. UNKNOWN means the solver did not decide within its limits. A timeout stays unknown. An empty test set or a handful of successful examples never becomes an equivalence claim.
+**Falsification:** the solver asks whether an input inside the explicit domain makes the original model and edited source produce different return bits or declared post-state words. A satisfiable query returns the input, both outputs, full post-state in memory mode and an instruction trace. SAT means a contradicting input exists; UNSAT means no such input exists in the declared model and domain. UNKNOWN means the solver did not decide within its limits. A timeout stays unknown. An empty test set or a handful of successful examples never becomes an equivalence claim.
 
 **Inverse programs:** the engine extracts a reversible single-input chain directly from the lifted expression. It derives modular inverses of odd multipliers and reverses constant addition/subtraction/XOR, constant rotations, full-width bit reversal and self-XOR shifts. Exact chain binding and both directions of every primitive must be checked before compositional inversion is accepted. Whole-expression checks are recorded separately, including timeouts. Lossy operations, unsupported chains and restricted input domains do not receive an all-input inverse claim.
 
@@ -97,7 +111,7 @@ The reusable inverse is computed from the recovered program. The separate **Find
 
 ## Scope is explicit
 
-This is a **bounded instruction-model result**, not a formally verified CPU lifter, whole-program decompiler or calling-convention inference system. You select the 32- or 64-bit word size, argument registers and returned `w0` or `x0` bits. In 64-bit mode, writes to a `w` register correctly zero its upper `x` bits; flags and shift masks follow each instruction's operand width. Direct conditional branches and shared return paths are supported when their control-flow graph has no directed cycle. A branch may target a lower address without forming a loop. Memory, calls, loops, indirect control flow, floating point, SIMD, ARM64e and unsupported instructions are rejected. Code with unresolved relocations is rejected before analysis. Stripped-symbol and universal-binary boundary recovery are outside this release.
+This is a **bounded instruction-model result**, not a formally verified CPU lifter, whole-program decompiler or calling-convention inference system. You select the 32- or 64-bit word size, argument registers and returned `w0` or `x0` bits. In 64-bit mode, writes to a `w` register correctly zero its upper `x` bits; flags and shift masks follow each instruction's operand width. Direct conditional branches and shared return paths are supported when their control-flow graph has no directed cycle. A branch may target a lower address without forming a loop. Memory is rejected by default. Explicit 64-bit memory mode supports one pointer and 1–3 little-endian words, with at most four logical scalar/state inputs and concrete in-bounds accesses. Its comparison covers the entire declared post-state and X0 at one documented synthetic base. Arbitrary/symbolic pointers, stack/global memory, indexed accesses, writeback, atomics and stateful inverse operations remain unsupported. Calls, loops, indirect control flow, floating point, SIMD, ARM64e and unsupported instructions are rejected. Code with unresolved relocations is rejected before analysis. Stripped-symbol and universal-binary boundary recovery are outside this release.
 
 The source language wraps arithmetic modulo 2³² or 2⁶⁴ and masks shift counts to 0–31 or 0–63. Browser computation uses exact BigInt values; 64-bit HTTP inputs and domain bounds must be strings so JSON numbers cannot silently lose bits. Signed and unsigned comparisons are distinct. Imports are never loaded for native execution. CPU comparisons execute only identified public or owned test fixtures and generated C.
 

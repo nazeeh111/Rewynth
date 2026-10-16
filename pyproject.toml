@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rewynth"
-version = "0.3.0"
-description = "Recover editable ARM64 integer semantics, falsify edits, and derive inverse programs locally."
+version = "0.4.0"
+description = "Recover ARM64 return and bounded state transitions, falsify edits, and export source locally."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

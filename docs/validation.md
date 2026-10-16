@@ -38,3 +38,26 @@ Local full suite:59 tests passed. The 64-bit addition has separate checks, not a
 Exact inverse chain binding and each local two-sided primitive proof are UNSAT. Whole nonlinear64 composition and rebuilt inverse comparisons remain UNKNOWN at bounded deadlines. A compiled reversible `wide_permute` has a shape outside the chain extractor and correctly receives no reusable inverse claim. The pure SplitMix64 adapter is supported; the original stateful function's memory accesses remain unsupported.
 
 Hosted CI, downloaded-release bytes and actual workspace/UI checks are recorded in the final release receipt when completed. Native check counts overlap and are not summed.
+
+## Bounded-memory transition extension (0.4.0)
+
+The unchanged original PCG C basic `pcg32_random_r` was pinned to
+`bc39cd76ac3d541e618606bcc6e1e5ba5e5e6aa3` and compiled locally using
+Apple Clang 21.0.0, `-arch arm64 -O2`. The packaged object SHA256 is
+`ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f`.
+The [provenance manifest](../src/native_recovery/resources/examples/memory-provenance.json)
+binds the exact source, header, license and compiler route.
+
+Before native execution, 37 state/increment pairs were frozen: boundary
+patterns, the upstream initializer and all 32 high-bit rotation selectors with
+a fixed low-bit pattern. Two native calls per pair, 74 total, matched the
+modeled return and both post-state words. The next return changed in 36 of 37
+cases. These are finite controlled observations, not a universal CPU proof,
+randomness assessment or independently published binary recovery task.
+
+Recovered return and both state expressions verified jointly in the model.
+An original edit that removes the state store is return-equivalent but has a
+post-state counterexample. The library is not reported as defective. The
+[complete state lesson](state-transitions.md) reproduces data-model recovery,
+editing and export without executing the artifact. Older native measurements
+remain historical; this extension did not rerun those closed proof cases.

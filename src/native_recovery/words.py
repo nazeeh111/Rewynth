@@ -41,6 +41,9 @@ def normalize_request(request, *, wire=False):
     result = dict(request)
     bits = word_bits(request.get("word_bits", 32))
     result["word_bits"] = bits
+    # Pointer declarations change the logical input count, never word precision.
+    from .transitions import input_count
+    count = input_count(request.get("arity"), request.get("memory"), bits)
     if "target" in request:
         result["target"] = pattern(request["target"], bits, wire=wire)
     if "inputs" in request:
@@ -50,8 +53,8 @@ def normalize_request(request, *, wire=False):
         result["inputs"] = [pattern(v, bits, wire=wire) for v in values]
     domain = request.get("domain")
     if domain is not None:
-        if not isinstance(domain, list) or len(domain) != request.get("arity"):
-            raise ValueError("Domain must have one entry per argument.")
+        if not isinstance(domain, list) or len(domain) != count:
+            raise ValueError("Domain must have one entry per logical input.")
         converted = []
         for item in domain:
             if item is None:
