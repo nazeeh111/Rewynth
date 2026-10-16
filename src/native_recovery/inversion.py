@@ -281,6 +281,8 @@ def derive_inverse(model, timeout_ms=1000, max_steps=32):
     primitive proofs plus exact chain binding establish a compositional result;
     global check statuses remain visible and are never rewritten as UNSAT.
     """
+    if getattr(model, "memory_spec", None) is not None:
+        raise ValueError("Inverse programs do not support declared memory transitions.")
     if type(timeout_ms) is not int or not 1 <= timeout_ms <= 5000:
         raise ValueError("Inverse proof timeout must be 1–5000 ms")
     if type(max_steps) is not int or not 1 <= max_steps <= 64:

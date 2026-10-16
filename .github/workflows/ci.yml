@@ -52,3 +52,5 @@ jobs:
           python -c "import json; f=json.load(open('branches.json')); e=json.load(open('branch-trace.json')); assert f['reconstruction']['status']=='verified_model'; assert e['witness']['output_u32']==4095; assert e['witness']['trace'][-1]['kind']=='return'; print('Installed conditional recovery and trace passed')"
       - name: Runnable conditional lesson against the installed package
         run: python examples/conditional_lab.py --output branch-lab
+      - name: Installed bounded state-transition lesson
+        run: python examples/state_lab.py --output state-lab

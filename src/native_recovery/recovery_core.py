@@ -1,7 +1,7 @@
-"""Bounded, data-only ARM64 register semantics for explicit 32/64-bit words.
+"""Bounded, data-only ARM64 semantics for explicit words and optional state.
 
 The instruction model is independently tested, not formally verified.
-Unsupported memory, calls, cyclic control flow and register forms fail closed.
+Memory requires one explicit finite region; other unsupported forms fail closed.
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -9,8 +9,11 @@ from pathlib import Path
 import hashlib, time, re
 from typing import Any
 import capstone
-from capstone.arm64 import ARM64_OP_REG, ARM64_OP_IMM
+from capstone.arm64 import ARM64_OP_REG, ARM64_OP_IMM, ARM64_OP_MEM
 import z3
+
+# An explicit model assumption, not a recovered native pointer or address range.
+MEMORY_BASE = 0x100000000
 
 class Unsupported(ValueError):
     pass
@@ -56,11 +59,21 @@ class FunctionModel:
     guards: dict = field(default_factory=dict)
     branch_conditions: dict = field(default_factory=dict)
     return_values: dict = field(default_factory=dict)
+    memory_spec: dict | None = None
+    machine_arity: int | None = None
+    post_memory: list = field(default_factory=list)
+    memory_traces: list = field(default_factory=list)
 
     def __post_init__(self):
         _infer_word_bits(self.inputs,self.word_bits)
         if not z3.is_bv(self.expr) or self.expr.size()!=self.word_bits:
             raise Unsupported("Function output must match selected word width")
+        if self.machine_arity is None:self.machine_arity=self.arity
+        if self.memory_spec is not None:
+            if self.word_bits!=64 or len(self.post_memory)!=self.memory_spec['words'] or any(not z3.is_bv(value) or value.size()!=64 for value in self.post_memory):
+                raise Unsupported("Post-memory must contain every declared 64-bit word")
+        elif self.post_memory:
+            raise Unsupported("Post-memory requires a memory declaration")
 
     def evaluate(self, values):
         if not isinstance(values,(list,tuple)) or len(values)!=self.arity:
@@ -69,15 +82,32 @@ class FunctionModel:
             raise ValueError(f"Inputs must be {self.word_bits}-bit integer values")
         return z3.simplify(z3.substitute(self.expr,*[(x,bv(v,self.word_bits)) for x,v in zip(self.inputs,values)])).as_long()
 
+    def evaluate_transition(self, values):
+        result=self.evaluate(values)
+        substitutions=[(x,bv(v,self.word_bits)) for x,v in zip(self.inputs,values)]
+        return {"return":result,"memory":[z3.simplify(z3.substitute(value,*substitutions)).as_long() for value in self.post_memory]}
+
     def assumptions(self):
         prefix = "x" if self.word_bits==64 else "w"
-        return {"architecture":"ARM64","word_bits":self.word_bits,
-                "argument_registers":[f"{prefix}{i}" for i in range(self.arity)],
+        result={"architecture":"ARM64","word_bits":self.word_bits,
+                "argument_registers":[f"{prefix}{i}" for i in range(self.machine_arity)],
                 "return_register":prefix+"0","domain":self.domain,
                 "memory":"none; memory instructions rejected","calls":"none; calls rejected",
                 "loops":"none; cyclic control flow rejected",
                 "control_flow":self.flow.summary() if self.flow else {"kind":"straight_line"},
                 "proof_scope":"output equality in the implemented ISA model; not a formally verified CPU semantics"}
+        if self.memory_spec is not None:
+            pointer=self.memory_spec['argument'];words=self.memory_spec['words']
+            registers=[i for i in range(self.machine_arity) if i!=pointer]
+            result['logical_inputs']=[{'index':i,'register':f'x{register}'} for i,register in enumerate(registers)]
+            result['logical_inputs'].extend({'index':len(registers)+i,'memory_offset':8*i,'width_bits':64} for i in range(words))
+            result['memory']={'argument':pointer,'words':words,'base_address':MEMORY_BASE,
+                              'bytes':8*words,'byte_order':'little',
+                              'address_scope':'one fixed synthetic base; only concrete in-bounds accesses',
+                              'post_state_scope':'entire declared region, including unchanged words',
+                              'comparison_scope':'joint return and every declared post-state word; scalar-only proof operations refused'}
+            result['proof_scope']='equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics'
+        return result
 
     def constraints(self):
         output=[]
@@ -91,8 +121,12 @@ class FunctionModel:
         self.evaluate(values)
         substitutions=[(x,bv(v,self.word_bits)) for x,v in zip(self.inputs,values)]
         output=[]
-        writes={instruction['address']:(instruction,destination,expr,condition)
-                for instruction,destination,expr,condition in self.traces}
+        writes={}
+        for instruction,destination,expr,condition in self.traces:
+            writes.setdefault(instruction['address'],[]).append((instruction,destination,expr,condition))
+        accesses={}
+        for instruction,kind,offset,size,expr in self.memory_traces:
+            accesses.setdefault(instruction['address'],[]).append((instruction,kind,offset,size,expr))
         sequence=self.flow.order if self.flow else list(writes)
         def truth(expr):
             value=z3.simplify(z3.substitute(expr,*substitutions))
@@ -117,12 +151,15 @@ class FunctionModel:
                                "destination":("x" if self.word_bits==64 else "w")+"0",
                                f"value_u{self.word_bits}":z3.simplify(z3.substitute(expr,*substitutions)).as_long()})
                 continue
-            if pc not in writes:continue
-            instruction,destination,expr,condition=writes[pc]
-            item={"address":instruction["address"],"instruction":instruction["assembly"],
-                  "destination":destination,f"value_u{self.word_bits}":z3.simplify(z3.substitute(expr,*substitutions)).as_long()}
-            if condition is not None:item["condition_taken"]=z3.is_true(z3.simplify(z3.substitute(condition,*substitutions)))
-            output.append(item)
+            for instruction,kind,offset,size,expr in accesses.get(pc,[]):
+                output.append({'kind':kind,'address':pc,'instruction':instruction['assembly'],
+                               'destination':f'memory[{offset}:{offset+size}]','offset':offset,'size_bytes':size,
+                               'value_u64':z3.simplify(z3.substitute(expr,*substitutions)).as_long()})
+            for instruction,destination,expr,condition in writes.get(pc,[]):
+                item={"address":instruction["address"],"instruction":instruction["assembly"],
+                      "destination":destination,f"value_u{self.word_bits}":z3.simplify(z3.substitute(expr,*substitutions)).as_long()}
+                if condition is not None:item["condition_taken"]=z3.is_true(z3.simplify(z3.substitute(condition,*substitutions)))
+                output.append(item)
         return output
 
 def load_function(path,symbol,arity,domain=None,*,word_bits=32):
@@ -135,7 +172,7 @@ def load_function(path,symbol,arity,domain=None,*,word_bits=32):
     return lift_function(code,function.address,selected,arity,domain,word_bits=word_bits,
                          metadata={"sha256":artifact.digest,"artifact_sha256":artifact.digest,"function_sha256":hashlib.sha256(code).hexdigest()})
 
-def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=32):
+def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=32,memory=None):
     """Lift selected bytes without execution; W writes zero-extend X in 64 mode."""
     _word_bits(word_bits)
     if not isinstance(code,bytes) or not code or len(code)>4096 or len(code)%4:
@@ -146,16 +183,34 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
     if type(arity) is not int or not 1<=arity<=4:raise Unsupported("Probe supports 1–4 integer arguments")
     if not isinstance(name,str) or len(name)>1024:raise Unsupported("Bounded function name required")
     if metadata is None:metadata={"sha256":hashlib.sha256(code).hexdigest(),"code_sha256":hashlib.sha256(code).hexdigest(),"identity_scope":"function bytes only"}
+    machine_arity=arity
+    if memory is not None:
+        if word_bits!=64:raise Unsupported("Memory requires 64-bit mode")
+        if not isinstance(memory,dict) or set(memory)!={'argument','words'}:
+            raise Unsupported("Memory requires exactly argument and words")
+        if type(memory['argument']) is not int or not 0<=memory['argument']<arity:
+            raise Unsupported("Memory argument must select a declared machine argument")
+        if type(memory['words']) is not int or not 1<=memory['words']<=3:
+            raise Unsupported("Memory must declare 1–3 words")
+        memory=dict(memory)
+        arity=machine_arity-1+memory['words']
+        if arity>4:raise Unsupported("Memory supports at most four logical inputs")
     args=[z3.BitVec(f"arg{i}",word_bits) for i in range(arity)]
     # The bank stores full selected words. Reading a W alias extracts low bits;
     # writing W in 64 mode zeroes the corresponding X register's high half.
     from .control_flow import decode_graph, ControlFlowError
     try:flow=decode_graph(code,address)
     except ControlFlowError as error:raise Unsupported(str(error)) from error
-    bank={i:value for i,value in enumerate(args)}
-    insns=[];traces=[];flags=None
-    incoming={address:[(z3.BoolVal(True),bank,None)]}
-    guards={};branch_conditions={};returns={}
+    if memory is None:
+        bank={i:value for i,value in enumerate(args)};memory_words=[]
+    else:
+        registers=[i for i in range(machine_arity) if i!=memory['argument']]
+        bank={register:args[i] for i,register in enumerate(registers)}
+        bank[memory['argument']]=bv(MEMORY_BASE,64)
+        memory_words=list(args[len(registers):])
+    insns=[];traces=[];memory_traces=[];flags=None
+    incoming={address:[(z3.BoolVal(True),bank,None,memory_words)]}
+    guards={};branch_conditions={};returns={};return_memories={}
 
     def reg(name):
         match=re.fullmatch(r"([wx])(zr|(?:[0-9]|[12][0-9]|30))",name)
@@ -240,6 +295,71 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
             if not z3.eq(alternative,value):value=z3.If(state[0],alternative,value)
         return value
 
+    def extract(value,low,bits):
+        return value if low==0 and bits==value.size() else z3.Extract(low+bits-1,low,value)
+
+    def concatenate(parts):
+        return parts[0] if len(parts)==1 else z3.Concat(*parts)
+
+    def memory_read(offset,size):
+        # Keep aligned whole-word reads as the original expression. Splitting
+        # words into bytes here would inflate subsequent recovered-source ASTs.
+        pieces=[];position=offset;end=offset+size
+        while position<end:
+            word,within=divmod(position,8);count=min(8-within,end-position)
+            pieces.append(extract(memory_words[word],within*8,count*8));position+=count
+        return concatenate(list(reversed(pieces)))
+
+    def memory_write(offset,size,value):
+        position=offset;end=offset+size
+        while position<end:
+            word,within=divmod(position,8);count=min(8-within,end-position)
+            portion=extract(value,(position-offset)*8,count*8)
+            pieces=[]
+            if within+count<8:pieces.append(extract(memory_words[word],(within+count)*8,(8-within-count)*8))
+            pieces.append(portion)
+            if within:pieces.append(extract(memory_words[word],0,within*8))
+            memory_words[word]=concatenate(pieces);position+=count
+
+    def lift_memory(ins,record):
+        if memory is None:raise Unsupported("Memory instructions require an explicit memory declaration")
+        pair=ins.mnemonic in {'ldp','stp'}
+        count=2 if pair else 1
+        if ins.writeback or len(ins.operands)!=count+1:
+            raise Unsupported("Memory writeback is unsupported")
+        data=ins.operands[:count];location=ins.operands[count]
+        if any(op.type!=ARM64_OP_REG or op.ext or op.shift.type for op in data) or location.type!=ARM64_OP_MEM:
+            raise Unsupported("Fixed-displacement register memory operands required")
+        if location.mem.index or location.ext or location.shift.type:
+            raise Unsupported("Indexed memory addresses are unsupported")
+        base=ins.reg_name(location.mem.base)
+        bits,_=reg(base)
+        if bits!=64:raise Unsupported("Memory base must be a 64-bit register")
+        effective=z3.simplify(read_register(base)+bv(location.mem.disp,64))
+        if not z3.is_bv_value(effective):raise Unsupported("Symbolic memory addresses are unsupported")
+        names=[ins.reg_name(op.reg) for op in data]
+        widths=[reg(name)[0] for name in names]
+        if len(set(widths))!=1:raise Unsupported("Pair register widths must agree")
+        size=1 if ins.mnemonic.endswith('b') else 2 if ins.mnemonic.endswith('h') else widths[0]//8
+        if size in (1,2) and widths[0]!=32:raise Unsupported("Byte/halfword access requires W register")
+        offset=effective.as_long()-MEMORY_BASE
+        if offset<0 or offset+count*size>8*memory['words']:
+            raise Unsupported("Memory access leaves the declared region")
+        load=ins.mnemonic.startswith('ld')
+        if pair and load and data[0].reg==data[1].reg:
+            raise Unsupported("Duplicate pair-load destinations are unsupported")
+        # Read every source/address before changing either registers or memory.
+        values=[memory_read(offset+i*size,size) if load else extract(read_register(name),0,size*8) for i,name in enumerate(names)]
+        for i,(name,value) in enumerate(zip(names,values)):
+            at=offset+i*size
+            widened=value if value.size()==64 else z3.ZeroExt(64-value.size(),value)
+            memory_traces.append((record,'memory_read' if load else 'memory_write',at,size,widened))
+            if load:
+                _,index=reg(name)
+                if index is not None:
+                    bank[index]=widened;traces.append((record,name,widened,None))
+            else:memory_write(at,size,value)
+
     for pc in flow.order:
         ins=flow.instructions[pc]
         states=[state for state in incoming.get(pc,[]) if not z3.is_false(z3.simplify(state[0]))]
@@ -249,14 +369,16 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
         initialized=set.intersection(*[set(state[1]) for state in states])
         bank={i:merge_value(states,lambda state,i=i:state[1][i]) for i in initialized}
         flags={k:merge_value(states,lambda state,k=k:state[2][k]) for k in ('n','z','c','v')} if all(state[2] is not None for state in states) else None
+        memory_words=[merge_value(states,lambda state,i=i:state[3][i]) for i in range(len(memory_words))]
         record={"address":ins.address,"assembly":f"{ins.mnemonic} {ins.op_str}".strip(),"bytes_hex":ins.bytes.hex()};insns.append(record)
         ops=ins.operands;mn=ins.mnemonic;condition=None
         def propagate(target,condition):
             path=condition if z3.is_true(guard) else guard if z3.is_true(condition) else guard_value(z3.And(guard,condition))
-            if not z3.is_false(path):incoming.setdefault(target,[]).append((path,dict(bank),None if flags is None else dict(flags)))
+            if not z3.is_false(path):incoming.setdefault(target,[]).append((path,dict(bank),None if flags is None else dict(flags),list(memory_words)))
         if mn=="ret":
             if 0 not in bank:raise Unsupported("Missing supported function return")
             returns[pc]=bank[0]
+            return_memories[pc]=list(memory_words)
             continue
         if pc in flow.branches:
             branch=flow.branches[pc]
@@ -277,6 +399,10 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
             if not ops or ops[0].type!=ARM64_OP_REG:raise Unsupported("Flag operation needs register operand")
             bits,_=reg(ins.reg_name(ops[0].reg));a,b=operand(ins,ops[0],bits),operand(ins,ops[1],bits)
             flags=logical_flags(a&b) if mn=="tst" else arithmetic_flags(a,b,a-b if mn=="cmp" else a+b,mn=="cmp")
+            propagate(pc+4,z3.BoolVal(True))
+            continue
+        if mn in {'ldr','str','ldrb','strb','ldrh','strh','ldp','stp'}:
+            lift_memory(ins,record)
             propagate(pc+4,z3.BoolVal(True))
             continue
         if mn in {"adds","subs","ands"}:mn=mn[:-1]
@@ -332,6 +458,8 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
     if not returns:raise Unsupported("Missing supported function return")
     returned_states=[(guards[pc],value) for pc,value in returns.items()]
     output=merge_value(returned_states,lambda state:state[1])
+    memory_states=[(guards[pc],return_memories[pc]) for pc in returns]
+    post_memory=[merge_value(memory_states,lambda state,i=i:state[1][i]) for i in range(len(memory_words))]
     domain=[None]*arity if domain is None else domain
     if not isinstance(domain,list) or len(domain)!=arity:raise Unsupported("Domain must have one entry per argument")
     for d in domain:
@@ -343,7 +471,7 @@ def lift_function(code,address,name,arity,domain=None,*,metadata=None,word_bits=
     # Disassembly is shown in physical order; execution traces use graph order and guards.
     insns.sort(key=lambda record:record['address'])
     return FunctionModel(metadata,name,arity,args,output,domain,insns,traces,word_bits,
-                         flow,guards,branch_conditions,returns)
+                         flow,guards,branch_conditions,returns,memory,machine_arity,post_memory,memory_traces)
 
 def ast_expr(node, args, depth=0, budget=None, *, word_bits=None):
     W = _infer_word_bits(args, word_bits)
@@ -450,6 +578,8 @@ def _solver(timeout_ms):
 
 
 def verify_ast(model, ast, timeout_ms=5000):
+    if model.memory_spec is not None:
+        raise Unsupported("Memory transitions require joint return/post-memory verification")
     W = model.word_bits
     B = lambda value: bv(value, W)
     C = lambda value: constant(value, W)
@@ -482,6 +612,8 @@ def verify_ast(model, ast, timeout_ms=5000):
 
 
 def inverse_query(model, target, timeout_ms=5000):
+    if model.memory_spec is not None:
+        raise Unsupported("Inverse queries do not support memory transitions")
     W = model.word_bits
     B = lambda value: bv(value, W)
     C = lambda value: constant(value, W)
@@ -723,6 +855,8 @@ def _synthesize_affine(model, timeout_ms, max_rounds):
 
 
 def synthesize(model, grammar="auto", timeout_ms=5000, max_rounds=32):
+    if model.memory_spec is not None:
+        raise Unsupported("Memory transitions require joint return/post-memory reconstruction")
     if not type(max_rounds) is int or not 1 <= max_rounds <= 128:
         raise ValueError("Round budget must be 1–128")
     methods = {

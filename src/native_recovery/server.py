@@ -90,6 +90,7 @@ class Workbench(ThreadingHTTPServer):
             "expression",
             "target",
             "inputs",
+            "memory",
         }:
             raise ValueError("Unknown operation fields.")
         body = normalize_request(body, wire=True)
@@ -235,6 +236,10 @@ class Handler(BaseHTTPRequestHandler):
             ),
             "/example-branches": (
                 "examples/branch-kernels.dylib",
+                "application/octet-stream",
+            ),
+            "/example-memory": (
+                "examples/pcg-basic.o",
                 "application/octet-stream",
             ),
         }

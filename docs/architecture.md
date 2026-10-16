@@ -27,3 +27,7 @@ Thin ARM64 artifact
 The solver and lifter are trusted parts of the model, not themselves formally verified by these checks. Independent native tests compare identified fixtures and generated C with model results. Those observations support specific tested instruction forms and do not establish correctness of arbitrary imported programs.
 
 `control_flow.py` decodes reachable instructions, validates direct targets and topologically orders the graph. The lifter merges register values and flags under their execution guards instead of enumerating paths. Registers or flags missing on an incoming path remain unavailable. Multiple returns combine into one output expression; concrete traces filter guards and retain the actual branch/write/return order. A backward address edge is allowed when the directed graph remains acyclic. The existing 128-instruction and editable-expression bounds remain in force, with at most 256 graph edges.
+
+## Declared state transitions
+
+The same acyclic lifter can carry one finite little-endian memory region alongside registers and flags. Each incoming path merges all declared words, and each return captures the full post-state. `transitions.py` translates and jointly compares architectural X0 plus every post-state word. Scalar-only proof and inverse APIs refuse these models. Public request normalization and workspace v3 retain the machine-to-logical input mapping. [The full contract](state-transitions.md) records bounds and unsupported addressing.

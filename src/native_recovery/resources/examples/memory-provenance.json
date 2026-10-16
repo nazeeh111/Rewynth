@@ -1,0 +1,34 @@
+{
+  "revision": "bc39cd76ac3d541e618606bcc6e1e5ba5e5e6aa3",
+  "files": [
+    {
+      "name": "pcg_basic.c",
+      "url": "https://raw.githubusercontent.com/imneme/pcg-c-basic/bc39cd76ac3d541e618606bcc6e1e5ba5e5e6aa3/pcg_basic.c",
+      "bytes": 3744,
+      "sha256": "b6582a071a8a090a293621523c063d125a532d772a2a1eb7d60b3e695fe47746"
+    },
+    {
+      "name": "pcg_basic.h",
+      "url": "https://raw.githubusercontent.com/imneme/pcg-c-basic/bc39cd76ac3d541e618606bcc6e1e5ba5e5e6aa3/pcg_basic.h",
+      "bytes": 2520,
+      "sha256": "cd823ddc225da9be520a54f13ef2c491506c353800cae04e8b673b2de58f2cc4"
+    },
+    {
+      "name": "LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/imneme/pcg-c-basic/bc39cd76ac3d541e618606bcc6e1e5ba5e5e6aa3/LICENSE.txt",
+      "bytes": 11357,
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    }
+  ],
+  "function": "pcg32_random_r",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+  "flags": [
+    "-arch",
+    "arm64",
+    "-O2",
+    "-c",
+    "pcg_basic.c"
+  ],
+  "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+  "scope": "Original source compiled locally. Shipped object is read as data. No independently published binary or customer task."
+}

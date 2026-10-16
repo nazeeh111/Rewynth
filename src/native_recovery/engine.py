@@ -20,6 +20,7 @@ def _run_operation(request, code, address, name):
         request["arity"],
         request.get("domain"),
         word_bits=request["word_bits"],
+        memory=request.get("memory"),
         metadata={
             "artifact_sha256": request["artifact"],
             "sha256": request["artifact"],
@@ -34,6 +35,20 @@ def _run_operation(request, code, address, name):
         "assumptions": model.assumptions(),
     }
     operation = request["operation"]
+    if request.get("memory") is not None:
+        from .transitions import recover_transition, parse_transition, verify_transition, format_transition, emit_transition_c
+        if operation in {"inverse", "derive_inverse"}:
+            raise ValueError("Inverse operations do not support declared memory transitions.")
+        if operation == "recover":
+            return {"kind": operation, "model": public, **recover_transition(model)}
+        if operation == "verify":
+            asts = parse_transition(request.get("expression"), model)
+            return {
+                "kind": operation, "model": public,
+                "verification": verify_transition(model, asts),
+                "expression": format_transition(asts),
+                "source": emit_transition_c(asts, model.arity),
+            }
     if operation == "derive_inverse":
         from .inversion import derive_inverse
 
@@ -108,16 +123,17 @@ def _run_operation(request, code, address, name):
             )
             if not domain["min"] <= interpreted <= domain["max"]:
                 raise ValueError("Input lies outside the declared domain.")
+        witness = {
+            f"inputs_u{model.word_bits}": values,
+            f"inputs_i{model.word_bits}": [core.signed(v, model.word_bits) for v in values],
+            f"output_u{model.word_bits}": model.evaluate(values),
+            "trace": model.trace(values),
+        }
+        if request.get("memory") is not None:
+            witness["memory_u64"] = model.evaluate_transition(values)["memory"]
         return {
             "kind": operation,
             "model": public,
-            "witness": {
-                f"inputs_u{model.word_bits}": values,
-                f"inputs_i{model.word_bits}": [
-                    core.signed(v, model.word_bits) for v in values
-                ],
-                f"output_u{model.word_bits}": model.evaluate(values),
-                "trace": model.trace(values),
-            },
+            "witness": witness,
         }
     raise ValueError("Unknown operation.")
