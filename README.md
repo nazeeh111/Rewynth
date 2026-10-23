@@ -6,7 +6,9 @@
 
 Rewynth is a local laboratory for recovering selected ARM64 functions, editing their semantics, finding counterexamples and deriving reusable inverse programs. It reads the original machine instructions as data. No model API, account or cloud service is required.
 
-Declare a small state buffer and recover its return plus every post-state word. An edit can return the same value but skip an update needed by the next call. Joint comparison exposes that counterexample. The complete [state-transition lesson](docs/state-transitions.md) uses the unchanged PCG32 routine compiled locally from independently authored source.
+Start with the PCG32 state example: recover its return and two state words, deliberately drop one update, and compare the edit. The immediate return can still agree while the state needed by the next call differs. The [complete state-transition lesson](docs/state-transitions.md) retains the unchanged PCG32 routine, original source and controlled compilation. The lost update is an intentional edit, not a claimed PCG defect.
+
+[Run the state lesson](#run-it) · [Try a register-only transform](#a-register-only-experiment) · [Read comparison limits](#what-an-edit-comparison-establishes)
 
 The other shipped demonstrations reconstruct image-processing kernels, branching integer transforms and an xxHash mixing function from actual compiled bytes. Branching examples retain guards, multiple returns and shared exits in editable source. A backward program derived from the mixer computes an original 32-bit input from its output without making a new solver query. This reverses the **avalanche transform**, not the complete variable-length xxHash algorithm.
 
