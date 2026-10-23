@@ -156,5 +156,47 @@ assert.equal(api.state().result,null);assert.ok(requests.some(r=>r[0]==='/api/ca
 """)
 
 
+    def test_next_call_uses_post_state_keeps_scalar_order_and_clears_on_edit(self):
+        self.check_js(r"""
+memory(3,1,2);
+const witness={inputs_u64:['9007199254740993','7','9','11'],original_output_u64:'5',candidate_output_u64:'5',original_memory_u64:['13','11'],candidate_memory_u64:['9','11'],differences:['memory[0]'],trace:[]};
+api.proof({status:'sat',counterexample:witness});
+assert.equal($('state-comparison').hidden,false);
+assert.equal($('state-words').children[0].children[1].textContent,'0x0000000000000009');
+context.fetch=async(path,options)=>{const body=options ? JSON.parse(options.body):null;requests.push([path,body]);return response(path==='/api/jobs'?{job:'next'}:{state:'done',result:{kind:'evaluate',model,witness:{inputs_u64:body?.inputs??['9007199254740993','7','13','11'],output_u64:'9007199254740995',memory_u64:['17','11'],trace:[]}}});};
+await $('continue-original').fire('click');
+assert.deepEqual(requests.find(r=>r[0]==='/api/jobs')[1].inputs,['9007199254740993','7','13','11']);
+assert.equal($('next-original').textContent,'0x0020000000000003');
+requests.length=0;await $('continue-edit').fire('click');
+assert.deepEqual(requests.find(r=>r[0]==='/api/jobs')[1].inputs,['9007199254740993','7','9','11']);
+$('expression').value='new edit';await $('expression').fire('input');
+assert.equal($('state-comparison').hidden,true);assert.equal($('trace-panel').hidden,true);
+""")
+
+    def test_failed_or_cancelled_next_trace_never_claims_a_return(self):
+        self.check_js(r"""
+memory();const witness={inputs_u64:['1','3'],original_output_u64:'7',candidate_output_u64:'7',original_memory_u64:['8','3'],candidate_memory_u64:['1','3'],differences:['memory[0]'],trace:[]};
+api.proof({status:'sat',counterexample:witness});
+context.fetch=async(path,options)=>response(path==='/api/jobs'?{job:'refused'}:{state:'failed',error:'Input outside declared domain'});
+await $('continue-original').fire('click');assert.match($('next-original').textContent,/Not established: Input outside declared domain/);
+let complete;context.fetch=async(path,options)=>path==='/api/jobs'?await new Promise(resolve=>{complete=resolve;}):response({});
+const pending=$('continue-edit').fire('click');await $('cancel').fire('click');complete(response({job:'cancelled'}));await pending;
+assert.match($('next-edit').textContent,/Cancelled/);
+""")
+
+    def test_cancelled_continuation_cannot_replace_newer_return(self):
+        self.check_js(r"""
+memory();api.proof({status:'sat',counterexample:{inputs_u64:['1','3'],original_output_u64:'7',candidate_output_u64:'7',original_memory_u64:['8','3'],candidate_memory_u64:['1','3'],differences:['memory[0]'],trace:[]}});
+let finishOld;context.fetch=async(path)=>path==='/api/jobs'?await new Promise(resolve=>{finishOld=resolve;}):response({});
+const old=$('continue-original').fire('click');await $('cancel').fire('click');
+context.fetch=async(path)=>response(path==='/api/jobs'?{job:'new'}:path.startsWith('/api/cancel/')?{}:{state:'done',result:{kind:'evaluate',model,witness:{inputs_u64:['8','3'],output_u64:'42',memory_u64:['9','3'],trace:[]}}});
+await $('continue-original').fire('click');
+assert.equal($('next-original').textContent,'0x000000000000002a');
+const notice=$('notice').textContent;
+finishOld(response({job:'old'}));await old;
+assert.equal($('next-original').textContent,'0x000000000000002a');
+assert.equal($('notice').textContent,notice);
+""")
+
 if __name__ == "__main__":
     unittest.main()

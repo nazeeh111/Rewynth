@@ -3,7 +3,7 @@ const $ = (id) => document.getElementById(id);
 let token, artifact, artifactData, artifactName, result, recoveredExpression, generatedSource;
 let generation = 0, activeJob, db, persistTimer;
 let lastEvidence;
-let inverseProgram;
+let inverseProgram, stateComparison, activeContinuation;
 const message = (text) => { $('notice').textContent = text; };
 const formatAddress = (value) => typeof value === 'string' ? value : hex(value);
 const width = () => Number($('word-bits').value);
@@ -129,18 +129,24 @@ function inputFields(savedDomains) {
 }
 async function cancel() {
   generation++;
+  if (activeContinuation) {
+    if (stateComparison === activeContinuation.witness) $('next-' + activeContinuation.side).textContent = 'Cancelled · no conclusion';
+    activeContinuation = null;
+  }
   const job = activeJob; activeJob = null;
   if (job) try { await post('/api/cancel/' + job, {}); } catch {}
   working(false);
 }
 function working(active) {
   $('cancel').hidden = !active;
-  for (const id of ['recover','verify','inverse','evaluate','derive_inverse','open','example','example-wide','example-branches','example-memory','reopen','symbol','arity','word-bits','memory-enabled','memory-argument','memory-words']) $(id).disabled = active || (!artifact && !['open','example','example-wide','example-branches','example-memory','reopen','arity','word-bits','memory-enabled','memory-argument','memory-words'].includes(id));
+  for (const id of ['continue-original','continue-edit','recover','verify','inverse','evaluate','derive_inverse','open','example','example-wide','example-branches','example-memory','reopen','symbol','arity','word-bits','memory-enabled','memory-argument','memory-words']) $(id).disabled = active || (!artifact && !['open','example','example-wide','example-branches','example-memory','reopen','arity','word-bits','memory-enabled','memory-argument','memory-words'].includes(id));
   if (width() !== 64) $('memory-enabled').disabled = true;
   if (memoryMode()) { $('inverse').disabled = true; $('derive_inverse').disabled = true; }
   for (const input of $('domains').querySelectorAll('input')) input.disabled = active;
 }
+function clearStateComparison() { stateComparison = null; activeContinuation = null; $('state-comparison').hidden = true; }
 function invalidate() {
+  clearStateComparison();
   cancel(); result = null; generatedSource = null; recoveredExpression = null; lastEvidence = null;
   inverseProgram = null; $('inverse-panel').hidden = true;
   const hasDraft = Boolean(artifact && $('expression').value.trim());
@@ -221,11 +227,60 @@ function trace(witness, title) {
   }
   wordField(witness,'inputs_u').forEach((n,i) => { if ($('arg-' + i)) $('arg-' + i).value = n; });
 }
+function showStateComparison(witness) {
+  clearStateComparison();
+  if (!memoryMode()) return;
+  stateComparison = witness;
+  const words = Number($('memory-words').value), scalars = Number($('arity').value) - 1;
+  const initial = wordField(witness, 'inputs_u').slice(scalars);
+  const original = wordField(witness, 'original_memory_u'), edited = wordField(witness, 'candidate_memory_u');
+  $('state-words').replaceChildren();
+  for (let i = 0; i < words; i++) {
+    const row = document.createElement('tr');
+    if (exact(original[i]) !== exact(edited[i])) row.className = 'changed-word';
+    for (const text of ['memory[' + i + ']', hex(initial[i]), hex(original[i]), hex(edited[i])]) {
+      const cell = document.createElement('td'); cell.textContent = text; row.append(cell);
+    }
+    $('state-words').append(row);
+  }
+  $('next-original').textContent = 'Not traced'; $('next-edit').textContent = 'Not traced';
+  $('state-comparison').hidden = false;
+}
+async function continueState(side) {
+  const witness = stateComparison;
+  if (!witness || !memoryMode()) throw new Error('Find a fresh state counterexample first.');
+  const invocation = {witness, side};
+  activeContinuation = invocation;
+  const isCurrent = () => activeContinuation === invocation && stateComparison === witness;
+  const scalars = wordField(witness, 'inputs_u').slice(0, Number($('arity').value) - 1);
+  const inputs = [...scalars, ...wordField(witness, side === 'original' ? 'original_memory_u' : 'candidate_memory_u')];
+  inputs.forEach((value, i) => { $('arg-' + i).value = value; });
+  $('next-' + side).textContent = 'Tracing…';
+  try {
+    const value = await run('evaluate');
+    if (!isCurrent()) return;
+    $('next-' + side).textContent = value ? hex(wordField(value.witness, 'output_u')) : 'Cancelled · no conclusion';
+    if (value) {
+      trace(value.witness, 'Next call from ' + (side === 'original' ? 'original' : 'edited') + ' post-state');
+      message('Original model traced from the ' + side + ' post-state. Compare the two next returns below the state table.');
+    }
+  } catch (error) {
+    if (!isCurrent()) return;
+    $('next-' + side).textContent = 'Not established: ' + error.message;
+    throw error;
+  } finally {
+    if (isCurrent()) {
+      if (document.activeElement === document.body) $('continue-' + side).focus?.();
+      activeContinuation = null;
+    }
+  }
+}
 function proof(verification) {
+  clearStateComparison();
   const p = $('proof'); p.className = 'proof';
   $('trace-panel').hidden = true; $('witness').textContent = '';
   if (verification?.status === 'unsat') p.textContent = 'No counterexample exists for ' + (memoryMode() ? 'the return and every declared post-state word' : 'the return') + ' within the declared domain in the implemented ARM64 model. This does not verify the lifter or calling convention against every CPU execution.';
-  else if (verification?.status === 'sat') { p.classList.add('fail'); const w = verification.counterexample; p.textContent = memoryMode() ? 'Counterexample found. Changed: ' + (w.differences || []).join(', ') + '.\nOriginal return ' + hex(wordField(w,'original_output_u')) + '; edit return ' + hex(wordField(w,'candidate_output_u')) + '.\nOriginal post-state: ' + postMemory(w,'original_memory_u') + '.\nEdit post-state: ' + postMemory(w,'candidate_memory_u') + '.' : 'Counterexample found. Original ' + hex(wordField(w,'original_output_u')) + ' differs from edit ' + hex(wordField(w,'candidate_output_u')) + '.'; trace(w, 'Contradicting input'); }
+  else if (verification?.status === 'sat') { p.classList.add('fail'); const w = verification.counterexample; p.textContent = memoryMode() ? 'Counterexample found. Changed: ' + (w.differences || []).join(', ') + '.\nOriginal return ' + hex(wordField(w,'original_output_u')) + '; edit return ' + hex(wordField(w,'candidate_output_u')) + '.\nOriginal post-state: ' + postMemory(w,'original_memory_u') + '.\nEdit post-state: ' + postMemory(w,'candidate_memory_u') + '.' : 'Counterexample found. Original ' + hex(wordField(w,'original_output_u')) + ' differs from edit ' + hex(wordField(w,'candidate_output_u')) + '.'; trace(w, 'Contradicting input'); showStateComparison(w); }
   else { p.classList.add('unknown'); p.textContent = 'No equivalence conclusion: ' + (verification?.reason || 'Unsupported or incomplete synthesis.'); }
 }
 function render(value) {
@@ -273,7 +328,7 @@ async function run(operation) {
     activeJob = started.job;
     for (let i = 0; i < 45 && generation === thisGeneration; i++) {
       const response = await fetch('/api/jobs/' + activeJob), state = await response.json();
-      if (state.state === 'done') { if (generation === thisGeneration) render(state.result); return; }
+      if (state.state === 'done') { if (generation === thisGeneration) { render(state.result); return state.result; } return; }
       if (state.state !== 'running') throw new Error(state.error || 'Analysis cancelled.');
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -295,8 +350,10 @@ $('workspace-file').addEventListener('change', async (event) => { const file = e
 $('word-bits').addEventListener('change', () => { memoryControls(); widthLabels(); inputFields(); invalidate(); });
 $('symbol').addEventListener('change', invalidate); $('arity').addEventListener('change', () => { memoryControls(); widthLabels(); inputFields(); invalidate(); });
 for (const id of ['memory-enabled','memory-argument','memory-words']) $(id).addEventListener('change', () => { memoryControls(); widthLabels(); inputFields(); invalidate(); });
-$('expression').addEventListener('input', () => { cancel(); generatedSource = null; lastEvidence = null; $('proof').className = 'proof unknown'; $('proof').textContent = 'Expression changed. The previous comparison does not apply to this edit.'; $('c-source').textContent = 'Verify the current expression to generate its portable C.'; scheduleSave(); });
+$('expression').addEventListener('input', () => { clearStateComparison(); $('trace-panel').hidden = true; cancel(); generatedSource = null; lastEvidence = null; $('proof').className = 'proof unknown'; $('proof').textContent = 'Expression changed. The previous comparison does not apply to this edit.'; $('c-source').textContent = 'Verify the current expression to generate its portable C.'; scheduleSave(); });
 action('recover', () => run('recover')); action('verify', () => run('verify')); action('inverse', () => run('inverse')); action('evaluate', () => run('evaluate')); action('cancel', async () => { await cancel(); message('Analysis cancelled. No new conclusion.'); });
+action('continue-original', () => continueState('original'));
+action('continue-edit', () => continueState('edit'));
 action('derive_inverse', () => run('derive_inverse'));
 action('export-inverse', () => { if (!inverseProgram) throw new Error('Derive a new inverse first.'); download('rewynth-inverse.c', '/* Artifact SHA256: ' + artifact.sha256 + '\n   Reusable inverse in the declared ARM64 instruction model.\n   Proof basis: exact chain binding and local two-sided composition. */\n' + inverseProgram.source, 'text/plain'); });
 action('export-inverse-evidence', () => { if (!inverseProgram) throw new Error('Derive a new inverse first.'); download('rewynth-inverse-evidence.json', JSON.stringify({schema:'rewynth.inverse-evidence',version:1,artifact_sha256:artifact.sha256,settings:settings(),result:inverseProgram},null,2)); });
