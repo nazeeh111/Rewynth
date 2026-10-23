@@ -142,6 +142,6 @@ Replace `--example` with `--example-wide`, `--example-branches` or an explicit a
 
 Public or invented small transforms that expose an incorrect encoding are especially useful. Include instruction bytes, argument/domain declarations, expected result and a minimal witness. Do not upload private artifacts. Run `python -m unittest discover -s tests -v` from an installed checkout. Tests that execute generated C require Clang; native ARM64 fixture checks report skips on other hosts. CI exercises the data-only core on Linux and the controlled native tests on ARM64 macOS.
 
-Built with Codex assistance. Original project code and branch fixtures are MIT; fixture excerpts retain stb's MIT and xxHash's BSD-2-Clause notices. Capstone and Z3 retain their upstream licenses. [Original fixture provenance](src/native_recovery/resources/examples/provenance.json) and [branch fixture provenance](src/native_recovery/resources/examples/branch-provenance.json) record sources and hashes.
+Original project code and branch fixtures are MIT; fixture excerpts retain stb's MIT and xxHash's BSD-2-Clause notices. Capstone and Z3 retain their upstream licenses. [Original fixture provenance](src/native_recovery/resources/examples/provenance.json) and [branch fixture provenance](src/native_recovery/resources/examples/branch-provenance.json) record sources and hashes.
 
 If a recovered program is useful in your work, a reproducible example or issue is more helpful than a broad claim. Stars and follows are welcome.
