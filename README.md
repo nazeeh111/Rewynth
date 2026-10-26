@@ -99,7 +99,7 @@ ARM64 fixture, and preserves existing result directories.
 Unsupported code is refused before this comparison. Changing the domain changes
 the question. The [runnable lesson](docs/control-flow.md#run-the-complete-lesson)
 saves actual results; this figure explains their scope.
-[Editable diagram source and design credit](docs/diagrams/README.md).
+[Editable diagram source](docs/diagrams/README.md).
 
 ## What the engine does
 
@@ -121,9 +121,7 @@ The workbench accepts at most 32 MiB per artifact, 4 KiB per selected function a
 
 ## Evidence
 
-The [validation record](docs/validation.md) separates CPU observations, model checks and unavailable conclusions. The reconstruction and inversion methods have substantial prior work: [FoxDec](https://github.com/ssrg-vt/FoxDec), [STOKE](https://github.com/StanfordPL/stoke), [Syntia](https://github.com/RUB-SysSec/syntia), [rebrew](https://github.com/maci0/rebrew) and [cozy](https://github.com/draperlaboratory/cozy). Rewynth claims no first invention of verified decompilation, synthesis or inversion. Its contribution is the integrated artifact-to-editable-program journey, explicit counterexample and inverse evidence, and a small inspectable implementation with no paid runtime dependency.
-
-[REA](https://github.com/morluto/rea) inspired the ambition to reconstruct behavior from unfamiliar artifacts. Rewynth does not depend on REA or claim to analyze everything.
+The [validation record](docs/validation.md) separates CPU observations, model checks and unavailable conclusions.
 
 ## CLI
 
@@ -143,5 +141,3 @@ Replace `--example` with `--example-wide`, `--example-branches` or an explicit a
 Public or invented small transforms that expose an incorrect encoding are especially useful. Include instruction bytes, argument/domain declarations, expected result and a minimal witness. Do not upload private artifacts. Run `python -m unittest discover -s tests -v` from an installed checkout. Tests that execute generated C require Clang; native ARM64 fixture checks report skips on other hosts. CI exercises the data-only core on Linux and the controlled native tests on ARM64 macOS.
 
 Original project code and branch fixtures are MIT; fixture excerpts retain stb's MIT and xxHash's BSD-2-Clause notices. Capstone and Z3 retain their upstream licenses. [Original fixture provenance](src/native_recovery/resources/examples/provenance.json) and [branch fixture provenance](src/native_recovery/resources/examples/branch-provenance.json) record sources and hashes.
-
-If a recovered program is useful in your work, a reproducible example or issue is more helpful than a broad claim. Stars and follows are welcome.

@@ -104,9 +104,3 @@ inverse programs explicitly refuse memory mode.
 domain and implemented semantics. `sat` supplies a counterexample. `unknown`
 or a refusal supplies no equivalence conclusion. The existing 20-second
 owned analysis process and solver budgets remain in force.
-
-Symbolic memory and binary comparison are established techniques. For larger
-programs or richer side effects, evaluate mature tools such as
-[angr](https://docs.angr.io/en/latest/core-concepts/states.html) and
-[cozy](https://github.com/draperlaboratory/cozy). Rewynth's contribution here
-is the bounded artifact-to-editable-transition workflow.

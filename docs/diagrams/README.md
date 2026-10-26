@@ -24,10 +24,3 @@ model, editable expression and explicit domain. The SAT/UNSAT/UNKNOWN outcomes
 retain the engine's distinct meanings. Unsupported input is refused before
 this comparison; UNSAT does not certify the CPU or the instruction lifter.
 The runnable conditional lesson provides actual comparison records and traces.
-
-The cream, olive and russet colors follow Rewynth's existing workbench. Original
-artwork and layout were prepared for this repository with Codex. Design guidance
-came from Cathryn Lavery's MIT-licensed [Diagram Design](https://github.com/cathrynlavery/diagram-design/tree/38a7afb0a67a4e82308872d57de1a39590e78d71),
-including its flowchart, connector, accessible-SVG and restrained-accent
-principles. No template code, icons or font assets were copied. This document
-records inspiration and provenance, not affiliation or endorsement.
