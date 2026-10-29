@@ -22,6 +22,6 @@ Prior state zero produces full output `0xe220a8397b1dcdaf`. A derived inverse re
 
 Proofs apply to the implemented selected-word instruction model. Exact chain binding and both directions of each supported primitive are required for compositional acceptance. Whole nonlinear composition checks can remain UNKNOWN. Native comparisons exercise only identified licensed/owned fixtures and generated C, never an uploaded artifact.
 
-Source and binary hashes, immutable upstream identity and full notices are in `resources/examples/wide-provenance.json` and packaged third-party notices. Do not reuse a fixture digest after recompilation changes its bytes.
+Source and binary hashes, immutable upstream identity and full notices are in `resources/examples/wide-provenance.json` and packaged fixture licenses. Do not reuse a fixture digest after recompilation changes its bytes.
 
 Version 3 also stores an optional bounded-memory declaration. [State-transition contracts](state-transitions.md) define logical input order, full post-state comparison and pure C exports. Versions 1 and 2 remain readable as register-only workspaces.

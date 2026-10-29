@@ -1,4 +1,4 @@
-include LICENSE THIRD_PARTY_NOTICES.md
+include LICENSE
 recursive-include tests *.py *.s *.o *.dylib *.c *.json
 recursive-include docs *.md *.json *.png *.svg *.html
 recursive-include examples *.py
