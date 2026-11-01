@@ -1,18 +1,14 @@
 # Rewynth
 
-**Recover compiled behavior. Catch edits that break the next call.**
+**Recover ARM64 behavior. Find the edit that breaks the next call.**
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml) [![Local ARM64 analysis](https://img.shields.io/badge/ARM64-local_analysis-7259D9)](docs/state-transitions.md) [![Verify](https://github.com/nazeeh111/Rewynth/actions/workflows/ci.yml/badge.svg)](https://github.com/nazeeh111/Rewynth/actions/workflows/ci.yml) [![MIT](https://img.shields.io/badge/License-MIT-45474B)](LICENSE)
-
-Rewynth is a local laboratory for recovering selected ARM64 functions, editing their semantics, finding counterexamples and deriving reusable inverse programs. It reads the original machine instructions as data. No model API, account or cloud service is required.
-
-Start with the PCG32 state example: recover its return and two state words, deliberately drop one update, and compare the edit. The immediate return can still agree while the state needed by the next call differs. The [complete state-transition lesson](docs/state-transitions.md) retains the unchanged PCG32 routine, original source and controlled compilation. The lost update is an intentional edit, not a claimed PCG defect.
-
-[Run the state lesson](#run-it) · [Try a register-only transform](#a-register-only-experiment) · [Read comparison limits](#what-an-edit-comparison-establishes)
-
-The other shipped demonstrations reconstruct image-processing kernels, branching integer transforms and an xxHash mixing function from actual compiled bytes. Branching examples retain guards, multiple returns and shared exits in editable source. A backward program derived from the mixer computes an original 32-bit input from its output without making a new solver query. This reverses the **avalanche transform**, not the complete variable-length xxHash algorithm.
+Read selected compiled functions as data, recover editable semantics, and compare an edit with the original instruction model. The PCG32 example shows why matching return values can still hide a changed next state.
 
 ![Actual Rewynth comparison: same return, different next state](docs/state-workbench.png)
+
+[Run the state lesson](#run-it) · [Derive an inverse](#a-register-only-experiment) · [Comparison limits](#what-an-edit-comparison-establishes)
+
+Analysis runs locally without a model API or account. Results cover supported instructions and your declared input domain.
 
 ## Run it
 
@@ -103,6 +99,8 @@ saves actual results; this figure explains their scope.
 
 ## What the engine does
 
+The shipped demonstrations include image-processing kernels, branching integer transforms and an xxHash mixer. The inverse demonstration reverses its avalanche transform, not the complete variable-length hash algorithm.
+
 **Recovery:** Capstone decodes the selected instructions. Rewynth translates its supported 32- and 64-bit register operations into Z3 expressions over bit-vectors (fixed-width machine words), preserving arithmetic flags and conditions. Compact semantic families solve for missing parameters and refine failed hypotheses using solver-produced counterexamples. A general bit-linear learner probes basis vectors, groups the inferred mask/shift/XOR contributions, then checks the complete candidate. Nonlinear functions use a bounded general semantics-to-source fallback. Recovered source uses prior-only bindings to keep shared expressions readable.
 
 **Falsification:** the solver asks whether an input inside the explicit domain makes the original model and edited source produce different return bits or declared post-state words. A satisfiable query returns the input, both outputs, full post-state in memory mode and an instruction trace. SAT means a contradicting input exists; UNSAT means no such input exists in the declared model and domain. UNKNOWN means the solver did not decide within its limits. A timeout stays unknown. An empty test set or a handful of successful examples never becomes an equivalence claim.
@@ -120,6 +118,8 @@ The source language wraps arithmetic modulo 2³² or 2⁶⁴ and masks shift cou
 The workbench accepts at most 32 MiB per artifact, 4 KiB per selected function and 128 reachable decoded instructions with at most 256 control-flow edges. The source AST (a tree of typed operations and inputs) is bounded to 256 nodes and depth 24. Each analysis runs in an owned cancelable process with a 20-second deadline; Linux additionally imposes a memory limit. The reader applies aggregate symbol and relocation budgets. Sessions and retained jobs are bounded. It binds to loopback and rejects cross-origin writes and unexpected hostnames.
 
 ## Evidence
+
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml) [![Local ARM64 analysis](https://img.shields.io/badge/ARM64-local_analysis-7259D9)](docs/state-transitions.md) [![Verify](https://github.com/nazeeh111/Rewynth/actions/workflows/ci.yml/badge.svg)](https://github.com/nazeeh111/Rewynth/actions/workflows/ci.yml) [![MIT](https://img.shields.io/badge/License-MIT-45474B)](LICENSE)
 
 The [validation record](docs/validation.md) separates CPU observations, model checks and unavailable conclusions.
 
