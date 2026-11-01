@@ -1,0 +1,1426 @@
+{
+  "summary": {
+    "status": "matched",
+    "cases": 32,
+    "wasm_transitions": 192,
+    "scope": "Finite controls against freshly compiled PCG source, not universal CPU equivalence.",
+    "native_calls": 192,
+    "native_host": "darwin",
+    "source_ref": "01fbd2e2f02e510102cad16e87c2d3a9fe2069ed",
+    "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+    "wasm_sha256": {
+      "original": "fd8315da55f93960f86abec882abbdea5dafcc8b080d3378e601c59688e8cc6a",
+      "edited": "93e728320c3ecc55b81b0edcafb5ef02922665b57c924b980e90fb98d774db2f"
+    }
+  },
+  "controls": [
+    {
+      "inputs": [
+        "0x853c49e6748fea9b",
+        "0xda3e39cb94b95bdb"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x152ca78d",
+            "0xc83015ca079f7e1a",
+            "0xda3e39cb94b95bdb"
+          ],
+          "edited": [
+            "0x152ca78d",
+            "0x853c49e6748fea9b",
+            "0xda3e39cb94b95bdb"
+          ]
+        },
+        {
+          "original": [
+            "0x27c6003",
+            "0xbfcf03ed28736c6d",
+            "0xda3e39cb94b95bdb"
+          ],
+          "edited": [
+            "0x152ca78d",
+            "0x853c49e6748fea9b",
+            "0xda3e39cb94b95bdb"
+          ]
+        },
+        {
+          "original": [
+            "0xcb07bbf3",
+            "0xdbbe54146b3e7e04",
+            "0xda3e39cb94b95bdb"
+          ],
+          "edited": [
+            "0x152ca78d",
+            "0x853c49e6748fea9b",
+            "0xda3e39cb94b95bdb"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x0",
+        "0x0"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x0",
+            "0x0",
+            "0x0"
+          ],
+          "edited": [
+            "0x0",
+            "0x0",
+            "0x0"
+          ]
+        },
+        {
+          "original": [
+            "0x0",
+            "0x0",
+            "0x0"
+          ],
+          "edited": [
+            "0x0",
+            "0x0",
+            "0x0"
+          ]
+        },
+        {
+          "original": [
+            "0x0",
+            "0x0",
+            "0x0"
+          ],
+          "edited": [
+            "0x0",
+            "0x0",
+            "0x0"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x0",
+        "0x1"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x0",
+            "0x1",
+            "0x1"
+          ],
+          "edited": [
+            "0x0",
+            "0x0",
+            "0x1"
+          ]
+        },
+        {
+          "original": [
+            "0x0",
+            "0x5851f42d4c957f2e",
+            "0x1"
+          ],
+          "edited": [
+            "0x0",
+            "0x0",
+            "0x1"
+          ]
+        },
+        {
+          "original": [
+            "0xe4c14788",
+            "0xc0b18ccf4e252d17",
+            "0x1"
+          ],
+          "edited": [
+            "0x0",
+            "0x0",
+            "0x1"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x1",
+        "0x1"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x0",
+            "0x5851f42d4c957f2e",
+            "0x1"
+          ],
+          "edited": [
+            "0x0",
+            "0x1",
+            "0x1"
+          ]
+        },
+        {
+          "original": [
+            "0xe4c14788",
+            "0xc0b18ccf4e252d17",
+            "0x1"
+          ],
+          "edited": [
+            "0x0",
+            "0x1",
+            "0x1"
+          ]
+        },
+        {
+          "original": [
+            "0x379c6516",
+            "0xcbb5f646404a560c",
+            "0x1"
+          ],
+          "edited": [
+            "0x0",
+            "0x1",
+            "0x1"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xffffffffffffffff",
+        "0xffffffffffffffff"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xfff00001",
+            "0xa7ae0bd2b36a80d2",
+            "0xffffffffffffffff"
+          ],
+          "edited": [
+            "0xfff00001",
+            "0xffffffffffffffff",
+            "0xffffffffffffffff"
+          ]
+        },
+        {
+          "original": [
+            "0x44726f5c",
+            "0x3f4e7330b1dad2e9",
+            "0xffffffffffffffff"
+          ],
+          "edited": [
+            "0xfff00001",
+            "0xffffffffffffffff",
+            "0xffffffffffffffff"
+          ]
+        },
+        {
+          "original": [
+            "0xcbd39f38",
+            "0x344a09b9bfb5a9f4",
+            "0xffffffffffffffff"
+          ],
+          "edited": [
+            "0xfff00001",
+            "0xffffffffffffffff",
+            "0xffffffffffffffff"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x8000000000000000",
+        "0x1"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x4",
+            "0x8000000000000001",
+            "0x1"
+          ],
+          "edited": [
+            "0x4",
+            "0x8000000000000000",
+            "0x1"
+          ]
+        },
+        {
+          "original": [
+            "0x4",
+            "0xd851f42d4c957f2e",
+            "0x1"
+          ],
+          "edited": [
+            "0x4",
+            "0x8000000000000000",
+            "0x1"
+          ]
+        },
+        {
+          "original": [
+            "0x4708e4c1",
+            "0x40b18ccf4e252d17",
+            "0x1"
+          ],
+          "edited": [
+            "0x4",
+            "0x8000000000000000",
+            "0x1"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xffffffff",
+        "0x8000000000000000"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x1f",
+            "0x74438affb36a80d3",
+            "0x8000000000000000"
+          ],
+          "edited": [
+            "0x1f",
+            "0xffffffff",
+            "0x8000000000000000"
+          ]
+        },
+        {
+          "original": [
+            "0xf7aa21cb",
+            "0x99301546fe705217",
+            "0x8000000000000000"
+          ],
+          "edited": [
+            "0x1f",
+            "0xffffffff",
+            "0x8000000000000000"
+          ]
+        },
+        {
+          "original": [
+            "0xcc2be4c0",
+            "0x6720bf7e0ddad70b",
+            "0x8000000000000000"
+          ],
+          "edited": [
+            "0x1f",
+            "0xffffffff",
+            "0x8000000000000000"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x1",
+        "0xffffffffffffffff"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x0",
+            "0x5851f42d4c957f2c",
+            "0xffffffffffffffff"
+          ],
+          "edited": [
+            "0x0",
+            "0x1",
+            "0xffffffffffffffff"
+          ]
+        },
+        {
+          "original": [
+            "0xe4c14788",
+            "0x100da474b4fa2ebb",
+            "0xffffffffffffffff"
+          ],
+          "edited": [
+            "0x0",
+            "0x1",
+            "0xffffffffffffffff"
+          ]
+        },
+        {
+          "original": [
+            "0xc06d03be",
+            "0x4a52dca7a3fffbde",
+            "0xffffffffffffffff"
+          ],
+          "edited": [
+            "0x0",
+            "0x1",
+            "0xffffffffffffffff"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xaac90ef9a06c79b0",
+        "0xf8ed73caac90f80e"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x244be2c9",
+            "0x275aa374c370abfe",
+            "0xf8ed73caac90f80e"
+          ],
+          "edited": [
+            "0x244be2c9",
+            "0xaac90ef9a06c79b0",
+            "0xf8ed73caac90f80e"
+          ]
+        },
+        {
+          "original": [
+            "0xdeb55544",
+            "0x2208a38f6f8835b4",
+            "0xf8ed73caac90f80e"
+          ],
+          "edited": [
+            "0x244be2c9",
+            "0xaac90ef9a06c79b0",
+            "0xf8ed73caac90f80e"
+          ]
+        },
+        {
+          "original": [
+            "0x8411561a",
+            "0x5143b7328beab4b2",
+            "0xf8ed73caac90f80e"
+          ],
+          "edited": [
+            "0x244be2c9",
+            "0xaac90ef9a06c79b0",
+            "0xf8ed73caac90f80e"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xaab08f0db6d53f8b",
+        "0xbe8b9334cbecb13e"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xa5a192b0",
+            "0xf2d6e6bbf9d5d1ad",
+            "0xbe8b9334cbecb13e"
+          ],
+          "edited": [
+            "0xa5a192b0",
+            "0xaab08f0db6d53f8b",
+            "0xbe8b9334cbecb13e"
+          ]
+        },
+        {
+          "original": [
+            "0x6b6d0721",
+            "0xaa89064c2f385fa7",
+            "0xbe8b9334cbecb13e"
+          ],
+          "edited": [
+            "0xa5a192b0",
+            "0xaab08f0db6d53f8b",
+            "0xbe8b9334cbecb13e"
+          ]
+        },
+        {
+          "original": [
+            "0x2cee6a89",
+            "0xaf08ae96507c5a99",
+            "0xbe8b9334cbecb13e"
+          ],
+          "edited": [
+            "0xa5a192b0",
+            "0xaab08f0db6d53f8b",
+            "0xbe8b9334cbecb13e"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x7e68b784bc0c2b0e",
+        "0xb495e9c9efe3f215"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x7a59a2a",
+            "0x2eb8febc3e89758b",
+            "0xb495e9c9efe3f215"
+          ],
+          "edited": [
+            "0x7a59a2a",
+            "0x7e68b784bc0c2b0e",
+            "0xb495e9c9efe3f215"
+          ]
+        },
+        {
+          "original": [
+            "0x6b8f512",
+            "0xd2c86e3ccd449084",
+            "0xb495e9c9efe3f215"
+          ],
+          "edited": [
+            "0x7a59a2a",
+            "0x7e68b784bc0c2b0e",
+            "0xb495e9c9efe3f215"
+          ]
+        },
+        {
+          "original": [
+            "0x42d47696",
+            "0xef647f525576d549",
+            "0xb495e9c9efe3f215"
+          ],
+          "edited": [
+            "0x7a59a2a",
+            "0x7e68b784bc0c2b0e",
+            "0xb495e9c9efe3f215"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x5bf1c4a09449ce86",
+        "0x1c82a900614c871e"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x738fc749",
+            "0x2641209e0bb84eac",
+            "0x1c82a900614c871e"
+          ],
+          "edited": [
+            "0x738fc749",
+            "0x5bf1c4a09449ce86",
+            "0x1c82a900614c871e"
+          ]
+        },
+        {
+          "original": [
+            "0x8c82521c",
+            "0xcb691a75b9d5af5a",
+            "0x1c82a900614c871e"
+          ],
+          "edited": [
+            "0x738fc749",
+            "0x5bf1c4a09449ce86",
+            "0x1c82a900614c871e"
+          ]
+        },
+        {
+          "original": [
+            "0x928affb6",
+            "0x1cf8eb22d53bfff0",
+            "0x1c82a900614c871e"
+          ],
+          "edited": [
+            "0x738fc749",
+            "0x5bf1c4a09449ce86",
+            "0x1c82a900614c871e"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x904fee2502703735",
+        "0xcc604a3bb377a943"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x51b7c27e",
+            "0x7bf276f7aa6da894",
+            "0xcc604a3bb377a943"
+          ],
+          "edited": [
+            "0x51b7c27e",
+            "0x904fee2502703735",
+            "0xcc604a3bb377a943"
+          ]
+        },
+        {
+          "original": [
+            "0x2ccfc9a",
+            "0x548a83341d83b747",
+            "0xcc604a3bb377a943"
+          ],
+          "edited": [
+            "0x51b7c27e",
+            "0x904fee2502703735",
+            "0xcc604a3bb377a943"
+          ]
+        },
+        {
+          "original": [
+            "0xb5e454b0",
+            "0x56366096fbde19be",
+            "0xcc604a3bb377a943"
+          ],
+          "edited": [
+            "0x51b7c27e",
+            "0x904fee2502703735",
+            "0xcc604a3bb377a943"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xccf35b6b586b382a",
+        "0x11d8c95f577cac9f"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x368578cf",
+            "0xd85f4e913ba46201",
+            "0x11d8c95f577cac9f"
+          ],
+          "edited": [
+            "0x368578cf",
+            "0xccf35b6b586b382a",
+            "0x11d8c95f577cac9f"
+          ]
+        },
+        {
+          "original": [
+            "0x7de21ba1",
+            "0xbe6f576fb69565cc",
+            "0x11d8c95f577cac9f"
+          ],
+          "edited": [
+            "0x368578cf",
+            "0xccf35b6b586b382a",
+            "0x11d8c95f577cac9f"
+          ]
+        },
+        {
+          "original": [
+            "0xde3d199b",
+            "0xa8da879f5cfbc57b",
+            "0x11d8c95f577cac9f"
+          ],
+          "edited": [
+            "0x368578cf",
+            "0xccf35b6b586b382a",
+            "0x11d8c95f577cac9f"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x2460fd05dd4567bc",
+        "0x546a09f1ff7dfc39"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xc8c1e83b",
+            "0x57a53cfc83937c45",
+            "0x546a09f1ff7dfc39"
+          ],
+          "edited": [
+            "0xc8c1e83b",
+            "0x2460fd05dd4567bc",
+            "0x546a09f1ff7dfc39"
+          ]
+        },
+        {
+          "original": [
+            "0xae7d2948",
+            "0xe8f301781b3a0f5a",
+            "0x546a09f1ff7dfc39"
+          ],
+          "edited": [
+            "0xc8c1e83b",
+            "0x2460fd05dd4567bc",
+            "0x546a09f1ff7dfc39"
+          ]
+        },
+        {
+          "original": [
+            "0xf33b44d8",
+            "0x432971bc3db2550b",
+            "0x546a09f1ff7dfc39"
+          ],
+          "edited": [
+            "0xc8c1e83b",
+            "0x2460fd05dd4567bc",
+            "0x546a09f1ff7dfc39"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x6e0d8b47ae7baae1",
+        "0xaa2ab15cd78bdd3a"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xc4ce0d90",
+            "0x6f67ec81e0385c7",
+            "0xaa2ab15cd78bdd3a"
+          ],
+          "edited": [
+            "0xc4ce0d90",
+            "0x6e0d8b47ae7baae1",
+            "0xaa2ab15cd78bdd3a"
+          ]
+        },
+        {
+          "original": [
+            "0xdecfeeb0",
+            "0xbdddf52cce5b1a35",
+            "0xaa2ab15cd78bdd3a"
+          ],
+          "edited": [
+            "0xc4ce0d90",
+            "0x6e0d8b47ae7baae1",
+            "0xaa2ab15cd78bdd3a"
+          ]
+        },
+        {
+          "original": [
+            "0x7696ed77",
+            "0xc4ea4abb4c68c38b",
+            "0xaa2ab15cd78bdd3a"
+          ],
+          "edited": [
+            "0xc4ce0d90",
+            "0x6e0d8b47ae7baae1",
+            "0xaa2ab15cd78bdd3a"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xa3eee5bab0db2a9c",
+        "0x6f03d185256f5165"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x9a8217dd",
+            "0xfca2feb512e532d1",
+            "0x6f03d185256f5165"
+          ],
+          "edited": [
+            "0x9a8217dd",
+            "0xa3eee5bab0db2a9c",
+            "0x6f03d185256f5165"
+          ]
+        },
+        {
+          "original": [
+            "0x28b0676b",
+            "0x67e098f2cb93ef22",
+            "0x6f03d185256f5165"
+          ],
+          "edited": [
+            "0x9a8217dd",
+            "0xa3eee5bab0db2a9c",
+            "0x6f03d185256f5165"
+          ]
+        },
+        {
+          "original": [
+            "0x15dfc102",
+            "0x59cf004398dc385f",
+            "0x6f03d185256f5165"
+          ],
+          "edited": [
+            "0x9a8217dd",
+            "0xa3eee5bab0db2a9c",
+            "0x6f03d185256f5165"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x832b783bb6732b52",
+        "0x93d8dfc32d21b4cb"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x1e2d656b",
+            "0xa488c913f0980035",
+            "0x93d8dfc32d21b4cb"
+          ],
+          "edited": [
+            "0x1e2d656b",
+            "0x832b783bb6732b52",
+            "0x93d8dfc32d21b4cb"
+          ]
+        },
+        {
+          "original": [
+            "0xc0638911",
+            "0xc35cd278bacd091c",
+            "0x93d8dfc32d21b4cb"
+          ],
+          "edited": [
+            "0x1e2d656b",
+            "0x832b783bb6732b52",
+            "0x93d8dfc32d21b4cb"
+          ]
+        },
+        {
+          "original": [
+            "0x9c55f16b",
+            "0x13e2a59e57fd32b7",
+            "0x93d8dfc32d21b4cb"
+          ],
+          "edited": [
+            "0x1e2d656b",
+            "0x832b783bb6732b52",
+            "0x93d8dfc32d21b4cb"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x63a967c3d2f22c65",
+        "0xa423fb13db07c7ee"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x531752fe",
+            "0x65d61c08e668b0af",
+            "0xa423fb13db07c7ee"
+          ],
+          "edited": [
+            "0x531752fe",
+            "0x63a967c3d2f22c65",
+            "0xa423fb13db07c7ee"
+          ]
+        },
+        {
+          "original": [
+            "0xfacbac0a",
+            "0x10715d1814f0a7b1",
+            "0xa423fb13db07c7ee"
+          ],
+          "edited": [
+            "0x531752fe",
+            "0x63a967c3d2f22c65",
+            "0xa423fb13db07c7ee"
+          ]
+        },
+        {
+          "original": [
+            "0x38ac822",
+            "0xf9f1aaa128b110b",
+            "0xa423fb13db07c7ee"
+          ],
+          "edited": [
+            "0x531752fe",
+            "0x63a967c3d2f22c65",
+            "0xa423fb13db07c7ee"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x2e8b95e693384532",
+        "0xd147e4de9f64f401"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x768b9e44",
+            "0x89c0d78488b6ebcb",
+            "0xd147e4de9f64f401"
+          ],
+          "edited": [
+            "0x768b9e44",
+            "0x2e8b95e693384532",
+            "0xd147e4de9f64f401"
+          ]
+        },
+        {
+          "original": [
+            "0x5f4b9c0f",
+            "0x3ff25623e7ad1bb0",
+            "0xd147e4de9f64f401"
+          ],
+          "edited": [
+            "0x768b9e44",
+            "0x2e8b95e693384532",
+            "0xd147e4de9f64f401"
+          ]
+        },
+        {
+          "original": [
+            "0xddfc9677",
+            "0xdcbb30696ff21f1",
+            "0xd147e4de9f64f401"
+          ],
+          "edited": [
+            "0x768b9e44",
+            "0x2e8b95e693384532",
+            "0xd147e4de9f64f401"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x5705fd605d114736",
+        "0xaa39d6689778e1b"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x9382f45",
+            "0x501a3e32f242dc99",
+            "0xaa39d6689778e1b"
+          ],
+          "edited": [
+            "0x9382f45",
+            "0x5705fd605d114736",
+            "0xaa39d6689778e1b"
+          ]
+        },
+        {
+          "original": [
+            "0xa3c0d151",
+            "0x2c1a47d71bb53c00",
+            "0xaa39d6689778e1b"
+          ],
+          "edited": [
+            "0x9382f45",
+            "0x5705fd605d114736",
+            "0xaa39d6689778e1b"
+          ]
+        },
+        {
+          "original": [
+            "0x8c1a4cd1",
+            "0x195e6f413d171a1b",
+            "0xaa39d6689778e1b"
+          ],
+          "edited": [
+            "0x9382f45",
+            "0x5705fd605d114736",
+            "0xaa39d6689778e1b"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xd89800d51c5c2d13",
+        "0x4291378196f4f310"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x60dbcc62",
+            "0x2054fd682d944c67",
+            "0x4291378196f4f310"
+          ],
+          "edited": [
+            "0x60dbcc62",
+            "0xd89800d51c5c2d13",
+            "0x4291378196f4f310"
+          ]
+        },
+        {
+          "original": [
+            "0x20a9eafa",
+            "0x76dd998837e07a2b",
+            "0x4291378196f4f310"
+          ],
+          "edited": [
+            "0x60dbcc62",
+            "0xd89800d51c5c2d13",
+            "0x4291378196f4f310"
+          ]
+        },
+        {
+          "original": [
+            "0x1fab6ec2",
+            "0x1a1067a6a50cc19f",
+            "0x4291378196f4f310"
+          ],
+          "edited": [
+            "0x60dbcc62",
+            "0xd89800d51c5c2d13",
+            "0x4291378196f4f310"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x3c7a1ebc23345289",
+        "0x35c491a4956076b"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xa91e8468",
+            "0x3c3d21ad24378080",
+            "0x35c491a4956076b"
+          ],
+          "edited": [
+            "0xa91e8468",
+            "0x3c7a1ebc23345289",
+            "0x35c491a4956076b"
+          ]
+        },
+        {
+          "original": [
+            "0x9b0f4ba8",
+            "0xdb123e74fa571deb",
+            "0x35c491a4956076b"
+          ],
+          "edited": [
+            "0xa91e8468",
+            "0x3c7a1ebc23345289",
+            "0x35c491a4956076b"
+          ]
+        },
+        {
+          "original": [
+            "0x4822c1cc",
+            "0xf0241bc0b044deba",
+            "0x35c491a4956076b"
+          ],
+          "edited": [
+            "0xa91e8468",
+            "0x3c7a1ebc23345289",
+            "0x35c491a4956076b"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xbbac1ae67d620813",
+        "0xff06f008764c8076"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xd035eeb",
+            "0x2f09e8b799858cd",
+            "0xff06f008764c8076"
+          ],
+          "edited": [
+            "0xd035eeb",
+            "0xbbac1ae67d620813",
+            "0xff06f008764c8076"
+          ]
+        },
+        {
+          "original": [
+            "0x5e13c6eb",
+            "0xb688fff0f572cf7f",
+            "0xff06f008764c8076"
+          ],
+          "edited": [
+            "0xd035eeb",
+            "0xbbac1ae67d620813",
+            "0xff06f008764c8076"
+          ]
+        },
+        {
+          "original": [
+            "0x69296744",
+            "0x6e53ede70955fac9",
+            "0xff06f008764c8076"
+          ],
+          "edited": [
+            "0xd035eeb",
+            "0xbbac1ae67d620813",
+            "0xff06f008764c8076"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xd73b4d9774e67743",
+        "0xffd1a239937c3b87"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xdbc2cd39",
+            "0x5af9b129c3286f4e",
+            "0xffd1a239937c3b87"
+          ],
+          "edited": [
+            "0xdbc2cd39",
+            "0xd73b4d9774e67743",
+            "0xffd1a239937c3b87"
+          ]
+        },
+        {
+          "original": [
+            "0x5eabe69e",
+            "0x3fb7feabe1357e3d",
+            "0xffd1a239937c3b87"
+          ],
+          "edited": [
+            "0xdbc2cd39",
+            "0xd73b4d9774e67743",
+            "0xffd1a239937c3b87"
+          ]
+        },
+        {
+          "original": [
+            "0x87edfc51",
+            "0x376cf57f4904af40",
+            "0xffd1a239937c3b87"
+          ],
+          "edited": [
+            "0xdbc2cd39",
+            "0xd73b4d9774e67743",
+            "0xffd1a239937c3b87"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x243e483fafb335ed",
+        "0x15d539aa6d5e0f53"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x787c8260",
+            "0x89bd5afff6901cfc",
+            "0x15d539aa6d5e0f53"
+          ],
+          "edited": [
+            "0x787c8260",
+            "0x243e483fafb335ed",
+            "0x15d539aa6d5e0f53"
+          ]
+        },
+        {
+          "original": [
+            "0x890a1bd7",
+            "0xaf21c6c1f1c02b9f",
+            "0x15d539aa6d5e0f53"
+          ],
+          "edited": [
+            "0x787c8260",
+            "0x243e483fafb335ed",
+            "0x15d539aa6d5e0f53"
+          ]
+        },
+        {
+          "original": [
+            "0xed098721",
+            "0xb0596fd9549b46",
+            "0x15d539aa6d5e0f53"
+          ],
+          "edited": [
+            "0x787c8260",
+            "0x243e483fafb335ed",
+            "0x15d539aa6d5e0f53"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x3f3f6f16e8ce74b6",
+        "0x7b5222e7fd70cf96"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x4dcfd836",
+            "0xb825ce3b4b8f9d94",
+            "0x7b5222e7fd70cf96"
+          ],
+          "edited": [
+            "0x4dcfd836",
+            "0x3f3f6f16e8ce74b6",
+            "0x7b5222e7fd70cf96"
+          ]
+        },
+        {
+          "original": [
+            "0x780c8e09",
+            "0x247c2e332bffee9a",
+            "0x7b5222e7fd70cf96"
+          ],
+          "edited": [
+            "0x4dcfd836",
+            "0x3f3f6f16e8ce74b6",
+            "0x7b5222e7fd70cf96"
+          ]
+        },
+        {
+          "original": [
+            "0x48f84e58",
+            "0xaf0bf498486e26a8",
+            "0x7b5222e7fd70cf96"
+          ],
+          "edited": [
+            "0x4dcfd836",
+            "0x3f3f6f16e8ce74b6",
+            "0x7b5222e7fd70cf96"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0xfea55c1479ca8862",
+        "0x6c88ed84cf2b418b"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xa958ef4b",
+            "0x2df4aa222a77d8c5",
+            "0x6c88ed84cf2b418b"
+          ],
+          "edited": [
+            "0xa958ef4b",
+            "0xfea55c1479ca8862",
+            "0x6c88ed84cf2b418b"
+          ]
+        },
+        {
+          "original": [
+            "0x5f4a15f",
+            "0xb71f354616f172c",
+            "0x6c88ed84cf2b418b"
+          ],
+          "edited": [
+            "0xa958ef4b",
+            "0xfea55c1479ca8862",
+            "0x6c88ed84cf2b418b"
+          ]
+        },
+        {
+          "original": [
+            "0xb71f1881",
+            "0x1bda42f598cd2847",
+            "0x6c88ed84cf2b418b"
+          ],
+          "edited": [
+            "0xa958ef4b",
+            "0xfea55c1479ca8862",
+            "0x6c88ed84cf2b418b"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x2e89789f14fe8f02",
+        "0xd507fa235e52b999"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x4e89733d",
+            "0xe58aef7c2c2ddaf3",
+            "0xd507fa235e52b999"
+          ],
+          "edited": [
+            "0x4e89733d",
+            "0x2e89789f14fe8f02",
+            "0xd507fa235e52b999"
+          ]
+        },
+        {
+          "original": [
+            "0x15ac3d2b",
+            "0xa3481949756fc350",
+            "0xd507fa235e52b999"
+          ],
+          "edited": [
+            "0x4e89733d",
+            "0x2e89789f14fe8f02",
+            "0xd507fa235e52b999"
+          ]
+        },
+        {
+          "original": [
+            "0x6336e690",
+            "0x4afbfa67e26cbea9",
+            "0xd507fa235e52b999"
+          ],
+          "edited": [
+            "0x4e89733d",
+            "0x2e89789f14fe8f02",
+            "0xd507fa235e52b999"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x1e27ec660b5a29e0",
+        "0x1ffd221232a3192d"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0xd89fafbf",
+            "0x4cae8beccba2958d",
+            "0x1ffd221232a3192d"
+          ],
+          "edited": [
+            "0xd89fafbf",
+            "0x1e27ec660b5a29e0",
+            "0x1ffd221232a3192d"
+          ]
+        },
+        {
+          "original": [
+            "0x76cae98c",
+            "0x7b18ab878d7955f6",
+            "0x1ffd221232a3192d"
+          ],
+          "edited": [
+            "0xd89fafbf",
+            "0x1e27ec660b5a29e0",
+            "0x1ffd221232a3192d"
+          ]
+        },
+        {
+          "original": [
+            "0x5068c62d",
+            "0x5b69797752ca3f6b",
+            "0x1ffd221232a3192d"
+          ],
+          "edited": [
+            "0xd89fafbf",
+            "0x1e27ec660b5a29e0",
+            "0x1ffd221232a3192d"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x69b4fd2c3bb96734",
+        "0x5317e4f3dd81fd02"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x4101b4e7",
+            "0xeb63d90bd88fed26",
+            "0x5317e4f3dd81fd02"
+          ],
+          "edited": [
+            "0x4101b4e7",
+            "0x69b4fd2c3bb96734",
+            "0x5317e4f3dd81fd02"
+          ]
+        },
+        {
+          "original": [
+            "0x63e3d32b",
+            "0x6cdc9a52a49286b0",
+            "0x5317e4f3dd81fd02"
+          ],
+          "edited": [
+            "0x4101b4e7",
+            "0x69b4fd2c3bb96734",
+            "0x5317e4f3dd81fd02"
+          ]
+        },
+        {
+          "original": [
+            "0x6584dc81",
+            "0xf534bb542084f9f2",
+            "0x5317e4f3dd81fd02"
+          ],
+          "edited": [
+            "0x4101b4e7",
+            "0x69b4fd2c3bb96734",
+            "0x5317e4f3dd81fd02"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        "0x5a7ffb398b5797b7",
+        "0xa0fb50c0d9affb08"
+      ],
+      "calls": [
+        {
+          "original": [
+            "0x99c9ffb6",
+            "0x38df382f6ddc6f33",
+            "0xa0fb50c0d9affb08"
+          ],
+          "edited": [
+            "0x99c9ffb6",
+            "0x5a7ffb398b5797b7",
+            "0xa0fb50c0d9affb08"
+          ]
+        },
+        {
+          "original": [
+            "0x2837cd86",
+            "0x462f42de6148d3ff",
+            "0xa0fb50c0d9affb08"
+          ],
+          "edited": [
+            "0x99c9ffb6",
+            "0x5a7ffb398b5797b7",
+            "0xa0fb50c0d9affb08"
+          ]
+        },
+        {
+          "original": [
+            "0xb6c5ea6a",
+            "0x9951f2412c13bfdb",
+            "0xa0fb50c0d9affb08"
+          ],
+          "edited": [
+            "0x99c9ffb6",
+            "0x5a7ffb398b5797b7",
+            "0xa0fb50c0d9affb08"
+          ]
+        }
+      ]
+    }
+  ]
+}
