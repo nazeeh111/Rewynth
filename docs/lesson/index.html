@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f3f5f8">
+  <meta name="description" content="A Rewynth state lesson: run two recovered PCG32 models, drop one state update, and see why matching returns can hide a bad edit.">
+  <title>Same return, different state · Rewynth</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="shell">
+    <a class="brand" href="https://github.com/nazeeh111/Rewynth"><span aria-hidden="true">↶</span> Rewynth</a>
+    <nav aria-label="Project"><a href="#method">How it works</a><a href="https://github.com/nazeeh111/Rewynth#run-it">Local workbench ↗</a></nav>
+  </header>
+  <main class="shell">
+    <section class="intro" aria-labelledby="title">
+      <p class="eyebrow">A STATE TRANSITION LESSON</p>
+      <h1 id="title">Same return.<br><em>Different next state.</em></h1>
+      <p class="lead">Drop one state update from a recovered PCG32 model. The first return still matches. Run the next call and see what that test missed.</p>
+      <p class="scope">Runs the exported C models in your browser. Fresh ARM64 recovery and solver queries require the local app.</p>
+    </section>
+
+    <section class="experiment" aria-label="Compare recovered and edited models" aria-busy="true">
+      <div class="toolbar"><span class="call" id="call-count">Loading models</span><div class="actions"><button id="next" class="primary" disabled>Run next call <span aria-hidden="true">→</span></button><button id="reset" disabled>Reset example</button></div></div>
+      <p id="load-error" class="error" role="alert" hidden></p>
+      <div class="comparison">
+        <article class="model original" aria-labelledby="original-title">
+          <div class="model-heading"><h2 id="original-title">Recovered model</h2><span>State update kept</span></div>
+          <dl><div class="returned"><dt>Returned value</dt><dd id="original-return">—</dd></div><div class="state-row"><dt>State after the call · memory[0]</dt><dd id="original-state">—</dd></div><div class="increment"><dt>Increment · memory[1]</dt><dd id="original-increment">—</dd></div></dl>
+        </article>
+        <article class="model edited" aria-labelledby="edited-title">
+          <div class="model-heading"><h2 id="edited-title">Lost-update edit</h2><span>Old state kept</span></div>
+          <dl><div class="returned"><dt>Returned value</dt><dd id="edited-return">—</dd></div><div class="state-row"><dt>State after the call · memory[0]</dt><dd id="edited-state">—</dd></div><div class="increment"><dt>Increment · memory[1]</dt><dd id="edited-increment">—</dd></div></dl>
+        </article>
+      </div>
+      <div id="observation" class="observation" role="status" aria-live="polite">Loading the two compiled exports…</div>
+      <div class="edit-note"><span class="eyebrow">THE ONLY EDIT</span><code>memory[0] = x0</code><span>Keep the initial state word. Leave the return expression and increment unchanged.</span></div>
+      <p class="starting" id="starting-inputs"></p>
+
+      <details class="custom-inputs"><summary>Try different initial words</summary>
+        <p>Use decimal or hexadecimal unsigned 64-bit values. Applying them starts both models again at call one.</p>
+        <form id="inputs" novalidate>
+          <div><label for="state-input">Initial state · x0</label><input id="state-input" name="state" value="0x853c49e6748fea9b" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="input-error"></div>
+          <div><label for="increment-input">Increment · x1</label><input id="increment-input" name="increment" value="0xda3e39cb94b95bdb" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="input-error"></div>
+          <button id="apply" disabled>Apply initial words</button>
+          <p id="input-error" class="error" role="alert" hidden></p>
+        </form>
+      </details>
+      <details class="history"><summary>Compare the calls</summary><div class="table-wrap" tabindex="0" aria-label="Call history"><table><caption class="sr-only">Returns from the recovered model and the lost-update edit</caption><thead><tr><th scope="col">Call</th><th scope="col">Recovered return</th><th scope="col">Edited return</th><th scope="col">Post-state</th></tr></thead><tbody id="history"></tbody></table></div></details>
+    </section>
+
+    <section class="method" id="method" aria-labelledby="method-title">
+      <div><p class="eyebrow">WHAT THIS SHOWS</p><h2 id="method-title">The return is only<br>one observation.</h2></div>
+      <div class="method-copy"><p>PCG32 computes its return from the old state, then stores the state for the next call. Dropping that store can pass a return-only test while changing what happens next.</p><p>Rewynth compares the return <em>and every declared state word</em>. The included solver record finds a difference in <code>memory[0]</code> while both immediate returns agree. This is our intentional edit, not a demonstrated bug in PCG.</p>
+        <details><summary>Exports, evidence and limits</summary><p>The two modules are compiled from Rewynth’s actual recovered and edited C exports. The controls above run those models locally with exact 64-bit inputs. They do not execute the original ARM64 instructions or make a fresh solver query.</p><p>The recorded equality result applies to the implemented instruction model, declared two-word memory region and input domain. The finite native controls do not prove universal CPU equivalence or random-generator quality.</p><ul class="evidence"><li><a href="model/original.c">Recovered C export</a> · <a href="model/edited.c">Edited C export</a></li><li><a href="model/evidence.json">Recorded model and solver evidence</a></li><li><a href="verification/native-wasm-controls.json">Native C / Wasm controls</a> · <a href="model/manifest.json">Build manifest</a></li></ul></details>
+        <a class="workbench-link" href="https://github.com/nazeeh111/Rewynth#run-it">Recover and edit your own function in the local workbench <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+  <footer class="shell"><p>PCG32 by Melissa O’Neill. <a href="model/PCG-LICENSE.txt">Apache-2.0</a>.<br>Rewynth and this lesson: <a href="model/REWYNTH-LICENSE.txt">license and attribution</a>.</p><a href="https://github.com/nazeeh111/Rewynth">Source on GitHub ↗</a></footer>
+  <noscript><p class="shell error">JavaScript and WebAssembly are needed to run the models. The C exports and recorded evidence above remain available.</p></noscript>
+</body>
+</html>

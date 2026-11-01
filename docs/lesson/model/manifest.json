@@ -1,0 +1,113 @@
+{
+  "format": "rewynth-browser-state-lesson-v1",
+  "source_ref": "01fbd2e2f02e510102cad16e87c2d3a9fe2069ed",
+  "compiler": "clang version 24.0.0git (https://github.com/llvm/llvm-project 83ee07799c341b60965f07892f7bb3d175da05be)",
+  "target": "wasm32",
+  "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+  "function_sha256": "f1f11d9bed12b74c3de0d08c15bfe989080274b1acd58c4517099b1434f48987",
+  "symbol": "_pcg32_random_r",
+  "assumptions": {
+    "architecture": "ARM64",
+    "word_bits": 64,
+    "argument_registers": [
+      "x0"
+    ],
+    "return_register": "x0",
+    "domain": [
+      null,
+      null
+    ],
+    "memory": {
+      "argument": 0,
+      "words": 2,
+      "base_address": 4294967296,
+      "bytes": 16,
+      "byte_order": "little",
+      "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+      "post_state_scope": "entire declared region, including unchanged words",
+      "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+    },
+    "calls": "none; calls rejected",
+    "loops": "none; cyclic control flow rejected",
+    "control_flow": {
+      "kind": "acyclic_direct",
+      "instructions": 13,
+      "edges": 12,
+      "branches": 0,
+      "returns": 1,
+      "backward_edges": 0,
+      "instruction_limit": 128,
+      "edge_limit": 256
+    },
+    "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+    "logical_inputs": [
+      {
+        "index": 0,
+        "memory_offset": 0,
+        "width_bits": 64
+      },
+      {
+        "index": 1,
+        "memory_offset": 8,
+        "width_bits": 64
+      }
+    ]
+  },
+  "recorded_recovery_status": "unsat",
+  "recorded_edit_status": "sat",
+  "native_source_sha256": {
+    "pcg-basic-upstream.c": "b6582a071a8a090a293621523c063d125a532d772a2a1eb7d60b3e695fe47746",
+    "pcg_basic.h": "cd823ddc225da9be520a54f13ef2c491506c353800cae04e8b673b2de58f2cc4"
+  },
+  "default_inputs": [
+    "0x853c49e6748fea9b",
+    "0xda3e39cb94b95bdb"
+  ],
+  "scope": "The browser runs recovered C models compiled to Wasm; it does not decode ARM64 or issue new solver queries.",
+  "assets": {
+    "PCG-LICENSE.txt": {
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+      "bytes": 11357
+    },
+    "REWYNTH-LICENSE.txt": {
+      "sha256": "25be57022753d75ff52a139115091603d94a7053bbfb4fdd6439011912fbed16",
+      "bytes": 5502
+    },
+    "edited-bridge.c": {
+      "sha256": "0a0f39093eb123bb4f6cef1a33fa679af2ddfaa760172c172e978768ed39029e",
+      "bytes": 402
+    },
+    "edited-transition.json": {
+      "sha256": "637c085e93729939705fd469c2bdaea160a8662b2a64d374d741a993ce5abdb0",
+      "bytes": 341
+    },
+    "edited.c": {
+      "sha256": "ceb70b99829df776b80b1f3f816431012bd7fa27dddd4b6906549f04963c7a06",
+      "bytes": 3346
+    },
+    "edited.wasm": {
+      "sha256": "93e728320c3ecc55b81b0edcafb5ef02922665b57c924b980e90fb98d774db2f",
+      "bytes": 365
+    },
+    "evidence.json": {
+      "sha256": "64966648f4fd46ccb46959a81f1ae601d162bf7595958dcbbe117ddd0035d6fc",
+      "bytes": 33661
+    },
+    "original-bridge.c": {
+      "sha256": "82c7dec692a5c1898e81f75fbea846f721ebb24f45d22ad4f4353af6c494cd1c",
+      "bytes": 404
+    },
+    "original-transition.json": {
+      "sha256": "ccf6bb1bcbd976db1574d8c2f630cdd2cbec6b475e5450c9c68bfca934d1713d",
+      "bytes": 371
+    },
+    "original.c": {
+      "sha256": "48d43863601df8c38bb69555a0a633cb09d42b095af31dedb9249ef3a77a754e",
+      "bytes": 3478
+    },
+    "original.wasm": {
+      "sha256": "fd8315da55f93960f86abec882abbdea5dafcc8b080d3378e601c59688e8cc6a",
+      "bytes": 380
+    }
+  }
+}
