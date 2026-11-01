@@ -6,7 +6,9 @@ Read selected compiled functions as data, recover editable semantics, and compar
 
 ![Actual Rewynth comparison: same return, different next state](docs/state-workbench.png)
 
-[Run the state lesson](#run-it) · [Derive an inverse](#a-register-only-experiment) · [Comparison limits](#what-an-edit-comparison-establishes)
+[Try the browser lesson](https://nazeeh111.github.io/Rewynth/lesson/) · [Run the local workbench](#run-it) · [Derive an inverse](#a-register-only-experiment) · [Comparison limits](#what-an-edit-comparison-establishes)
+
+The browser lesson needs no installation. It runs the recovered and edited C models with your exact 64-bit inputs; the local workbench performs fresh recovery and solver comparisons.
 
 Analysis runs locally without a model API or account. Results cover supported instructions and your declared input domain.
 
