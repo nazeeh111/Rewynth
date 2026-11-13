@@ -20,8 +20,9 @@ Python 3.11 or newer. macOS and Linux are supported for data-only analysis; the 
 git clone https://github.com/nazeeh111/Rewynth.git
 cd Rewynth
 python3 -m venv .venv
-.venv/bin/python -m pip install .
-.venv/bin/rewynth serve
+. .venv/bin/activate
+python -m pip install .
+rewynth serve
 ```
 
 Open `http://127.0.0.1:6343/` and choose **Load PCG32 bounded state example**. There is also a wheel on the [release page](https://github.com/nazeeh111/Rewynth/releases); install that downloaded wheel inside a virtual environment instead of cloning.
