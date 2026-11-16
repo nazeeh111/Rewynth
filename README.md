@@ -26,7 +26,7 @@ python3 -m venv .venv
 
 Open `http://127.0.0.1:6343/` and choose **Load PCG32 bounded state example**. There is also a wheel on the [release page](https://github.com/nazeeh111/Rewynth/releases); install that downloaded wheel inside a virtual environment instead of cloning.
 
-To inspect your own artifact, use a thin, little-endian ARM64 Mach-O or ELF with named code symbols. Select the function and explicitly declare its 32- or 64-bit word size and one to four argument registers. Narrow the input domain when the intended use requires it. The workbench binds results to both artifact and function-byte digests.
+To inspect your own artifact, use a regular file containing a thin, little-endian ARM64 Mach-O or ELF with named code symbols. Symlinks to regular files are supported; special files and inputs over 32 MiB are refused. Select the function and explicitly declare its 32- or 64-bit word size and one to four argument registers. Narrow the input domain when the intended use requires it. The workbench binds results to both artifact and function-byte digests.
 
 ## Compare a stateful edit
 
@@ -137,6 +137,28 @@ rewynth verify --example --function _kernel_avalanche --arguments 1 --expression
 ```
 
 Replace `--example` with `--example-wide`, `--example-branches` or an explicit artifact path, selecting exactly one. CLI output is JSON; errors exit 2. `verify` reads the bounded source language, never arbitrary Python or C. See [source language](docs/source-language.md) and [architecture](docs/architecture.md).
+
+## Save a memory counterexample
+
+For a SAT comparison with declared memory, add `--witness-out witness.json` to
+`rewynth verify`. The new file binds the artifact and function hashes, input
+domain, edited expression, logical inputs and observed return/state words.
+Recheck the record with the same artifact, for example:
+
+```sh
+rewynth replay-witness --example-memory --witness witness.json --c-out regression.c
+cc -std=c11 regression.c -o regression && ./regression
+```
+
+The C program replays reconstructed model expressions, not the original target
+or its pointer ABI. Rechecking lifts the supplied artifact again and compares
+all recorded outputs and the generated C. Records are unsigned: their hashes
+detect accidental changes but do not authenticate their origin. An unknown or
+unsatisfiable comparison produces no witness. Existing output files are never
+replaced. Witness input must be a regular file; platforms without nonblocking,
+no-follow descriptor support refuse replay. If an owned temporary file cannot
+be cleaned after publication, the command succeeds with its path in a warning.
+Full native execution and equivalence remain outside this evidence.
 
 ## Contribute
 

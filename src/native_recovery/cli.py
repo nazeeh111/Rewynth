@@ -5,7 +5,7 @@ import json
 import multiprocessing as mp
 from pathlib import Path
 import sys
-from .artifacts import Artifact, MAX_ARTIFACT
+from .artifacts import Artifact, capture_artifact
 from .words import pattern
 
 
@@ -67,6 +67,10 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     serve = sub.add_parser("serve", help="Open the loopback workbench")
     serve.add_argument("--port", type=int, default=6343)
+    replay = sub.add_parser("replay-witness", help="Recheck a saved memory witness against an artifact")
+    artifact_selector(replay)
+    replay.add_argument("--witness", type=Path, required=True)
+    replay.add_argument("--c-out", type=Path, help="Save the checked standalone model regression C")
     inspect = sub.add_parser(
         "inspect", help="Read an artifact inventory without running it"
     )
@@ -90,6 +94,7 @@ def main():
             help="JSON list of null or {min,max,signed} entries; omitted means all patterns of the selected word size",
         )
         if operation == "verify":
+            child.add_argument("--witness-out", type=Path, help="Create a new data-only SAT memory witness JSON")
             child.add_argument(
                 "--expression",
                 type=Path,
@@ -127,10 +132,24 @@ def main():
             if args.example or args.example_wide or args.example_branches or args.example_memory
             else args.artifact
         )
-        with selected_path.open("rb") as stream:
-            artifact = Artifact(stream.read(MAX_ARTIFACT + 1))
+        artifact = Artifact(capture_artifact(selected_path))
         if args.command == "inspect":
             result = artifact.public()
+        elif args.command == "replay-witness":
+            from .witness import replay, unique_json, capture_witness
+            document = unique_json(capture_witness(args.witness))
+            try:
+                symbol = document["payload"]["symbol"]
+                if not isinstance(symbol, str) or len(symbol) > 1024:
+                    raise ValueError("Invalid witness symbol.")
+                function, code = artifact.function(symbol)
+                result = replay(document, artifact.digest, code, function.address, function.name, bounded_operation)
+                if args.c_out is not None:
+                    from .witness import publish_exclusive
+                    warning = publish_exclusive(args.c_out, document['payload']['c_harness'].encode('utf-8'))
+                    if warning: print('Warning: ' + warning, file=sys.stderr)
+            except (KeyError, TypeError, AttributeError) as exc:
+                raise ValueError("Invalid witness record.") from exc
         else:
             function, code = artifact.function(args.function)
             request = {
@@ -155,9 +174,19 @@ def main():
                     pattern(v, args.word_bits, signed=True) for v in args.inputs
                 ]
             result = bounded_operation(request, code, function.address, function.name)
+            if args.command == "verify" and args.witness_out is not None:
+                from .witness import create, canonical, publish_exclusive, LIMIT
+                doc = create(request, code, function.address, function.name, result, bounded_operation)
+                raw = canonical(doc) + b"\n"
+                if len(raw) > LIMIT:
+                    raise ValueError("Witness exceeds its byte limit.")
+                warning = publish_exclusive(args.witness_out, raw)
+                if warning: print('Warning: ' + warning, file=sys.stderr)
         print(json.dumps(result, indent=2, allow_nan=False))
     except (OSError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
+        for note in getattr(exc, '__notes__', ()):
+            print(note, file=sys.stderr)
         raise SystemExit(2)
 
 

@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from hashlib import sha256
 from bisect import bisect_right
 import struct
+import os
+import stat
 
 MAX_ARTIFACT = 32 * 1024 * 1024
 MAX_FUNCTION = 4096
@@ -11,6 +13,35 @@ MAX_FUNCTION = 4096
 
 class ArtifactError(ValueError):
     pass
+
+
+def capture_artifact(path):
+    """Read one bounded regular file via a nonblocking descriptor.
+
+    Symlinks to regular files remain supported. Bytes are captured once;
+    concurrent writes can still change contents during the read.
+    """
+    if not hasattr(os, "O_NONBLOCK"):
+        raise ArtifactError("Safe artifact admission requires nonblocking file support.")
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode):
+            raise ArtifactError("Artifact must be a regular file.")
+        if info.st_size > MAX_ARTIFACT:
+            raise ArtifactError("Artifact must be between 32 bytes and 32 MiB.")
+        chunks, total = [], 0
+        while True:
+            chunk = os.read(fd, min(65536, MAX_ARTIFACT + 1 - total))
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > MAX_ARTIFACT:
+                raise ArtifactError("Artifact must be between 32 bytes and 32 MiB.")
+            chunks.append(chunk)
+        return b"".join(chunks)
+    finally:
+        os.close(fd)
 
 
 @dataclass(frozen=True)

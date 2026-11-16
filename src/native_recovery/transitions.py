@@ -113,6 +113,24 @@ def verify_transition(model, asts, timeout_ms=5000):
     return result
 
 
+
+def replay_transition(model, asts, values):
+    """Evaluate one admitted input without solving for a new counterexample."""
+    if not isinstance(values, list) or len(values) != model.arity:
+        raise ValueError("Wrong witness input count.")
+    if any(type(v) is not int or not 0 <= v < (1 << 64) for v in values):
+        raise ValueError("Witness inputs must be unsigned 64-bit words.")
+    substitutions = [(x, core.bv(v, 64)) for x, v in zip(model.inputs, values)]
+    if any(not z3.is_true(z3.simplify(z3.substitute(c, *substitutions))) for c in model.constraints()):
+        raise ValueError("Witness input lies outside the declared domain.")
+    original = model.evaluate_transition(values)
+    candidate = [z3.simplify(z3.substitute(core.ast_expr(ast, model.inputs, word_bits=64), *substitutions)).as_long() for ast in asts]
+    old = [original["return"], *original["memory"]]
+    names = ["return", *[f"memory[{i}]" for i in range(len(model.post_memory))]]
+    return {"inputs_u64": values, "original_output_u64": old[0], "candidate_output_u64": candidate[0],
+            "original_memory_u64": old[1:], "candidate_memory_u64": candidate[1:],
+            "differences": [name for name, a, b in zip(names, old, candidate) if a != b]}
+
 def recover_transition(model):
     asts = [core.expression_to_ast(value, model.inputs, word_bits=64) for value in [model.expr, *model.post_memory]]
     verification = verify_transition(model, asts)
