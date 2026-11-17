@@ -163,9 +163,8 @@ class FunctionModel:
         return output
 
 def load_function(path,symbol,arity,domain=None,*,word_bits=32):
-    from .artifacts import Artifact, MAX_ARTIFACT
-    with Path(path).open("rb") as stream:
-        artifact=Artifact(stream.read(MAX_ARTIFACT+1))
+    from .artifacts import Artifact, capture_artifact
+    artifact=Artifact(capture_artifact(path))
     names={f.name for f in artifact.functions}
     selected=symbol if symbol in names else "_"+symbol
     function,code=artifact.function(selected)
