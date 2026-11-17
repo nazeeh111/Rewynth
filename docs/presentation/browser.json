@@ -1,0 +1,13 @@
+{
+  "keyboardRecovery": true,
+  "proof": "Counterexample found. Changed: memory[0].\nOriginal return 0x00000000afeddd80; edit return 0x00000000afeddd80.\nOriginal post-state: memory[0] = 0xc8e7e15e17ffffff, memory[1] = 0xcc7d05711fffffff.\nEdit post-state: memory[0] = 0x2fedd67bd8000000, memory[1] = 0xcc7d05711fffffff.",
+  "nextOriginal": "0x000000007d367e8e",
+  "nextEdit": "0x00000000afeddd80",
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "unsupportedInputPreservesArtifactAndEdit": true,
+  "errors": [],
+  "reopenedEditRequiresAndPassesFreshComparison": true
+}

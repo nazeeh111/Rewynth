@@ -1,0 +1,60 @@
+{
+  "compiler": "Apple clang version 21.0.0 (clang-2100.4.1.1)",
+  "scope": "Generated pure logical transition C and authored caller only; original target not executed",
+  "result": {
+    "first_original": 2951601536,
+    "first_edited": 2951601536,
+    "memory_original": 14476787321451577343,
+    "memory_edited": 3453652316656238592,
+    "next_original": 2100723342,
+    "next_from_edited": 2951601536
+  },
+  "matchesActualBrowserContinuation": true,
+  "commands": [
+    [
+      "cc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Wno-unused-parameter",
+      "-Werror",
+      "-O2",
+      "-Drewynth_transition=original_transition",
+      "-c",
+      "/Users/nazeeh/Documents/Codex/2026-11-17/portfolio-design/candidates/repositories/Rewynth-design/source/docs/presentation/original.c",
+      "-o",
+      "/var/folders/ss/tml7487n205dg94kb7__tth80000gn/T/rewynth-export-callers-wf30zcdr/original.o"
+    ],
+    [
+      "cc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Wno-unused-parameter",
+      "-Werror",
+      "-O2",
+      "-Drewynth_transition=edited_transition",
+      "-c",
+      "/Users/nazeeh/Documents/Codex/2026-11-17/portfolio-design/candidates/repositories/Rewynth-design/source/docs/presentation/edited.c",
+      "-o",
+      "/var/folders/ss/tml7487n205dg94kb7__tth80000gn/T/rewynth-export-callers-wf30zcdr/edited.o"
+    ],
+    [
+      "cc",
+      "-std=c11",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "/Users/nazeeh/Documents/Codex/2026-11-17/portfolio-design/candidates/repositories/Rewynth-design/source/docs/presentation/caller.c",
+      "/var/folders/ss/tml7487n205dg94kb7__tth80000gn/T/rewynth-export-callers-wf30zcdr/original.o",
+      "/var/folders/ss/tml7487n205dg94kb7__tth80000gn/T/rewynth-export-callers-wf30zcdr/edited.o",
+      "-o",
+      "/var/folders/ss/tml7487n205dg94kb7__tth80000gn/T/rewynth-export-callers-wf30zcdr/caller"
+    ]
+  ],
+  "sourceSHA256": {
+    "original.c": "5c58f5f86cb8241b8b65c8a0787d1ea3efb5313ac65bee60c675988ef01c004b",
+    "edited.c": "9df611392a318dfbe68588d57fb8a012c406803ae1200e30f8e1f192b4eb0720",
+    "caller.c": "b7d428c6384fc9c78e17dd4171410a90315f810c1a89eb997774f4aa50a08cff"
+  }
+}

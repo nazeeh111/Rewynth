@@ -1,0 +1,7 @@
+{
+  "return": "t0 = (((((((x0 >> 45) >> 0) & 0x00000000ffffffff) ^ (((x0 >> 27) >> 0) & 0x00000000ffffffff)) & 0x00000000ffffffff) >> 0) & 0x00000000ffffffff)\nt1 = ((((((x0 >> 59) >> 0) & 0x00000000ffffffff) & 31) & 0x00000000ffffffff) & 31)\n(((t0 >> t1) | (t0 << (32 - t1))) & 0x00000000ffffffff)",
+  "memory": [
+    "x0",
+    "x1"
+  ]
+}
