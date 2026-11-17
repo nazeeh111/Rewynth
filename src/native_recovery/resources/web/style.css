@@ -5,3 +5,16 @@
 .proof{white-space:pre-line;overflow-wrap:anywhere}.intro h1{letter-spacing:-1.8px}.memory-declaration{background:#eef1f6}.source-heading label{color:#2458df}#method{max-width:50%;overflow-wrap:anywhere}.table-scroll:focus-visible{outline:3px solid #2458df;outline-offset:3px}
 
 .state-comparison{margin-top:20px;border-top:1px solid #d5dbe5}.state-comparison h3{color:#2458df}.state-comparison .table-scroll{overflow:auto;margin:14px 0}.state-comparison table{min-width:620px}.state-comparison td{white-space:nowrap}.changed-word{background:#fff1f3}.changed-word td:first-child{font-weight:700}.state-comparison .action-row{margin-top:16px}.next-returns{margin:16px 0;font-size:11px}.next-returns div{padding:10px 0;border-bottom:1px solid #d5dbe5}.next-returns dt{color:#5c687b}.next-returns dd{font-family:ui-monospace,monospace;margin:6px 0 0;overflow-wrap:anywhere}
+
+/* Exact evidence remains readable without changing the recovery model. */
+.small, label, summary, .signed, .bounds label, .bounds input,
+.identity, pre, table, .witness, .next-returns, footer p { font-size: 12px; }
+th { font-size: 11px; }
+.panel-heading > span { font-size: 11px; }
+.scroll-hint { display: none; color: #4d5e7b; font-size: 12px; line-height: 1.6; }
+@media (max-width: 720px) {
+  .scroll-hint { display: block; margin: 12px 0 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

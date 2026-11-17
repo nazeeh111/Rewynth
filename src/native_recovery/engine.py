@@ -41,6 +41,12 @@ def _run_operation(request, code, address, name):
             raise ValueError("Inverse operations do not support declared memory transitions.")
         if operation == "recover":
             return {"kind": operation, "model": public, **recover_transition(model)}
+        if operation == "replay_witness":
+            from .transitions import replay_transition
+            asts = parse_transition(request.get("expression"), model)
+            return {"kind": operation, "model": public,
+                    "observation": replay_transition(model, asts, request.get("inputs")),
+                    "source": emit_transition_c(asts, model.arity)}
         if operation == "verify":
             asts = parse_transition(request.get("expression"), model)
             return {
