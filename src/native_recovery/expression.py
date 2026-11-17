@@ -224,10 +224,6 @@ def validate_ast(node: dict, *, word_bits: int = 32) -> str:
     return visit(node, 1)
 
 
-def _check_ast(node: dict, *, word_bits: int = 32) -> str:
-    return validate_ast(node, word_bits=word_bits)
-
-
 def parse_expression(text: str, *, word_bits: int = 32) -> dict:
     """Translate safe source into an AST with explicit modulo-word semantics."""
     mask = _word_mask(word_bits)
