@@ -1,0 +1,18 @@
+{
+  "source": "e9f4261b9ffda97186fa1ced4cbcfc6a78516189",
+  "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+  "function_sha256": "f1f11d9bed12b74c3de0d08c15bfe989080274b1acd58c4517099b1434f48987",
+  "encoding": "Exact model values and generated-C caller results; arrows denote original-model continuation, not timing or imported-target execution",
+  "files": {
+    "comparison.json": "c2c674f03857280c3685433f5bfbb71f89714bdb50614cb679aa87d50b1fb5c0",
+    "native-caller.json": "2aa238b1904bc808065a2d8f81c6dc566715cd63df04615448f1928bb4f1e11e",
+    "original.c": "5c58f5f86cb8241b8b65c8a0787d1ea3efb5313ac65bee60c675988ef01c004b",
+    "edited.c": "9df611392a318dfbe68588d57fb8a012c406803ae1200e30f8e1f192b4eb0720",
+    "caller.c": "b7d428c6384fc9c78e17dd4171410a90315f810c1a89eb997774f4aa50a08cff",
+    "figure.py": "bba930cae4e76f13b6eec08ea7f82ffcb979a9a2dc16dc9cffffc98979c1ce25",
+    "lost-update.svg": "8e0ec5e6549315413e3d0750ba24f6b23fa7174158a02062e82ccba188347af5",
+    "lost-update-mobile.svg": "b6af0e45131068531d7dcab327e1da29ea00d85ea771cbf8b94c72c0f3b2a479",
+    "lost-update.png": "2175abee94bd49dd8c5b0b9cdc6fab5c89c76db13a8dea99a17361fd4ab1566a",
+    "lost-update-mobile.png": "451bf21c418bff3f83e3a66a3ded298803a9736b5539fde6f4b25dfc9d3503c5"
+  }
+}

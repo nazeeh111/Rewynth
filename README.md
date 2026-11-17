@@ -4,7 +4,19 @@
 
 Read selected compiled functions as data, recover editable semantics, and compare an edit with the original instruction model. The PCG32 example shows why matching return values can still hide a changed next state.
 
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/presentation/lost-update-mobile.png">
+  <img src="docs/presentation/lost-update.png" alt="Actual Rewynth comparison and rebuilt pure C: both first returns match, memory[0] differs, and continuing the original model from those states yields different next returns." width="100%">
+</picture>
+
+**The next call exposes the lost update.** An actual current-source comparison finds the return-preserving edit's changed state, then a standalone C11 caller rebuilds both pure transitions and reproduces the divergent continuation. [Inspect the exact witness, generated source and complete executable example](docs/presentation/README.md).
+
+<details>
+<summary>Earlier local workbench capture</summary>
+
 ![Actual Rewynth comparison: same return, different next state](docs/state-workbench.png)
+
+</details>
 
 [Try the browser lesson](https://nazeeh111.github.io/Rewynth/lesson/) · [Run the local workbench](#run-it) · [Derive an inverse](#a-register-only-experiment) · [Comparison limits](#what-an-edit-comparison-establishes)
 

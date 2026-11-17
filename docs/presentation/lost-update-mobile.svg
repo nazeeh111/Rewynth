@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="1280" viewBox="0 0 420 1280" role="img" aria-labelledby="title desc">
+<title id="title">Rewynth: the return hides a lost state update</title>
+<desc id="desc">The original ARM64 instruction model and edited transition return 0xafeddd80. Their first state word differs. The next call of the original model yields 0x7d367e8e from the original post-state and 0xafeddd80 from the edited post-state. Generated pure C independently reproduces this result.</desc>
+<style>text{font-family:Arial,Helvetica,sans-serif;fill:#182039}.muted{fill:#4d5e7b}.mono{font-family:"Courier New",Courier,monospace}.blue{fill:#2458ba}.red{fill:#9c2e43}</style>
+<rect width="420" height="1280" fill="#f3f5f8"/>
+<text x="28" y="50" font-size="29" font-weight="700" class="">rewynth</text>
+<text x="28" y="108" font-size="35" font-weight="700" class="">The return hides</text>
+<text x="28" y="150" font-size="35" font-weight="700" class="">the lost update.</text>
+<text x="28" y="192" font-size="18" font-weight="400" class="muted">An actual bounded ARM64 comparison.</text>
+<text x="28" y="248" font-size="17" font-weight="400" class="muted">Initial state</text>
+<text x="28" y="280" font-size="22" font-weight="400" class="mono">0x2fedd67bd8000000</text>
+<text x="28" y="320" font-size="20" font-weight="700" class="blue">Same first return in both models</text>
+<text x="28" y="354" font-size="25" font-weight="400" class="mono">0x00000000afeddd80</text>
+<path d="M28 397H392" stroke="#aab8ce"/>
+<text x="28" y="422" font-size="25" font-weight="700" class="blue">Recovered transition</text>
+<text x="28" y="469" font-size="18" font-weight="400" class="muted">Post-state memory[0]</text>
+<text x="28" y="505" font-size="22" font-weight="400" class="mono">0xc8e7e15e17ffffff</text>
+<path d="M48 525V573m-6-7 6 7 6-7" fill="none" stroke="#4d5e7b" stroke-width="2"/>
+<text x="28" y="606" font-size="18" font-weight="400" class="muted">Next original-model return</text>
+<text x="28" y="642" font-size="22" font-weight="400" class="mono">0x000000007d367e8e</text>
+<path d="M28 707H392" stroke="#aab8ce"/>
+<text x="28" y="732" font-size="25" font-weight="700" class="red">Lost-store edit</text>
+<text x="28" y="779" font-size="18" font-weight="400" class="muted">Post-state memory[0]</text>
+<text x="28" y="815" font-size="22" font-weight="400" class="mono">0x2fedd67bd8000000</text>
+<path d="M48 835V883m-6-7 6 7 6-7" fill="none" stroke="#4d5e7b" stroke-width="2"/>
+<text x="28" y="916" font-size="18" font-weight="400" class="muted">Next original-model return</text>
+<text x="28" y="952" font-size="22" font-weight="400" class="mono">0x00000000afeddd80</text>
+<text x="28" y="1067" font-size="18" font-weight="400" class="muted">memory[1] retained in both:</text>
+<text x="28" y="1101" font-size="21" font-weight="400" class="mono">0xcc7d05711fffffff</text>
+<text x="28" y="1153" font-size="21" font-weight="700" class="blue">Generated C reproduces the split.</text>
+<text x="28" y="1193" font-size="16" font-weight="400" class="muted">Pure logical ABI; original target not run.</text>
+<text x="28" y="1230" font-size="16" font-weight="400" class="muted">A model/domain result, not a CPU proof.</text>
+</svg>

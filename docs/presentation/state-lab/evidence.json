@@ -1,0 +1,986 @@
+{
+  "scope": "Data-only ARM64 model; original PCG source compiled locally; no target execution",
+  "recovered": {
+    "kind": "recover",
+    "model": {
+      "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+      "function_sha256": "f1f11d9bed12b74c3de0d08c15bfe989080274b1acd58c4517099b1434f48987",
+      "symbol": "_pcg32_random_r",
+      "instructions": [
+        {
+          "address": "0x28",
+          "assembly": "mov x8, #0x7f2d",
+          "bytes_hex": "a8e58fd2"
+        },
+        {
+          "address": "0x2c",
+          "assembly": "movk x8, #0x4c95, lsl #16",
+          "bytes_hex": "a892a9f2"
+        },
+        {
+          "address": "0x30",
+          "assembly": "movk x8, #0xf42d, lsl #32",
+          "bytes_hex": "a885def2"
+        },
+        {
+          "address": "0x34",
+          "assembly": "movk x8, #0x5851, lsl #48",
+          "bytes_hex": "280aebf2"
+        },
+        {
+          "address": "0x38",
+          "assembly": "ldp x9, x10, [x0]",
+          "bytes_hex": "092840a9"
+        },
+        {
+          "address": "0x3c",
+          "assembly": "madd x8, x9, x8, x10",
+          "bytes_hex": "2829089b"
+        },
+        {
+          "address": "0x40",
+          "assembly": "str x8, [x0]",
+          "bytes_hex": "080000f9"
+        },
+        {
+          "address": "0x44",
+          "assembly": "lsr x8, x9, #0x2d",
+          "bytes_hex": "28fd6dd3"
+        },
+        {
+          "address": "0x48",
+          "assembly": "lsr x10, x9, #0x1b",
+          "bytes_hex": "2afd5bd3"
+        },
+        {
+          "address": "0x4c",
+          "assembly": "eor w8, w8, w10",
+          "bytes_hex": "08010a4a"
+        },
+        {
+          "address": "0x50",
+          "assembly": "lsr x9, x9, #0x3b",
+          "bytes_hex": "29fd7bd3"
+        },
+        {
+          "address": "0x54",
+          "assembly": "ror w0, w8, w9",
+          "bytes_hex": "002dc91a"
+        },
+        {
+          "address": "0x58",
+          "assembly": "ret",
+          "bytes_hex": "c0035fd6"
+        }
+      ],
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null,
+          null
+        ],
+        "memory": {
+          "argument": 0,
+          "words": 2,
+          "base_address": 4294967296,
+          "bytes": 16,
+          "byte_order": "little",
+          "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+          "post_state_scope": "entire declared region, including unchanged words",
+          "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+        },
+        "calls": "none; calls rejected",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 13,
+          "edges": 12,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
+        "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+        "logical_inputs": [
+          {
+            "index": 0,
+            "memory_offset": 0,
+            "width_bits": 64
+          },
+          {
+            "index": 1,
+            "memory_offset": 8,
+            "width_bits": 64
+          }
+        ]
+      }
+    },
+    "reconstruction": {
+      "status": "verified_model",
+      "grammar": "bounded_state_transition",
+      "verification": {
+        "status": "unsat",
+        "assumptions": {
+          "architecture": "ARM64",
+          "word_bits": 64,
+          "argument_registers": [
+            "x0"
+          ],
+          "return_register": "x0",
+          "domain": [
+            null,
+            null
+          ],
+          "memory": {
+            "argument": 0,
+            "words": 2,
+            "base_address": 4294967296,
+            "bytes": 16,
+            "byte_order": "little",
+            "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+            "post_state_scope": "entire declared region, including unchanged words",
+            "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+          },
+          "calls": "none; calls rejected",
+          "loops": "none; cyclic control flow rejected",
+          "control_flow": {
+            "kind": "acyclic_direct",
+            "instructions": 13,
+            "edges": 12,
+            "branches": 0,
+            "returns": 1,
+            "backward_edges": 0,
+            "instruction_limit": 128,
+            "edge_limit": 256
+          },
+          "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+          "logical_inputs": [
+            {
+              "index": 0,
+              "memory_offset": 0,
+              "width_bits": 64
+            },
+            {
+              "index": 1,
+              "memory_offset": 8,
+              "width_bits": 64
+            }
+          ]
+        },
+        "observations": [
+          "return",
+          "memory[0]",
+          "memory[1]"
+        ]
+      }
+    },
+    "expression": "{\n  \"return\": \"t0 = (((((((x0 >> 45) >> 0) & 0x00000000ffffffff) ^ (((x0 >> 27) >> 0) & 0x00000000ffffffff)) & 0x00000000ffffffff) >> 0) & 0x00000000ffffffff)\\nt1 = ((((((x0 >> 59) >> 0) & 0x00000000ffffffff) & 31) & 0x00000000ffffffff) & 31)\\n(((t0 >> t1) | (t0 << (32 - t1))) & 0x00000000ffffffff)\",\n  \"memory\": [\n    \"((x0 * 0x5851f42d4c957f2d) + x1)\",\n    \"x1\"\n  ]\n}",
+    "source": "/* Pure transition: logical inputs are original scalars then initial memory words.\n   All declared post-state words and architectural X0 are returned.\n   This is reconstructed model source, not the original pointer ABI. */\n#include <stdint.h>\n#include <stdbool.h>\n\nstatic uint64_t rewynth_observation_0(uint64_t x0, uint64_t x1) {\n    uint64_t nr_0 = (uint64_t)(x0 >> (UINT64_C(0x000000000000002d) & UINT64_C(63)));\n    uint64_t nr_1 = (uint64_t)(nr_0 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_2 = (uint64_t)(nr_1 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_3 = (uint64_t)(x0 >> (UINT64_C(0x000000000000001b) & UINT64_C(63)));\n    uint64_t nr_4 = (uint64_t)(nr_3 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_5 = (uint64_t)(nr_4 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_6 = (uint64_t)(nr_2 ^ nr_5);\n    uint64_t nr_7 = (uint64_t)(nr_6 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_8 = (uint64_t)(nr_7 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_9 = (uint64_t)(nr_8 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_10 = (uint64_t)(x0 >> (UINT64_C(0x000000000000003b) & UINT64_C(63)));\n    uint64_t nr_11 = (uint64_t)(nr_10 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_12 = (uint64_t)(nr_11 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_13 = (uint64_t)(nr_12 & UINT64_C(0x000000000000001f));\n    uint64_t nr_14 = (uint64_t)(nr_13 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_15 = (uint64_t)(nr_14 & UINT64_C(0x000000000000001f));\n    uint64_t nr_16 = (uint64_t)(nr_9 >> (nr_15 & UINT64_C(63)));\n    uint64_t nr_17 = (uint64_t)(UINT64_C(0x0000000000000020) - nr_15);\n    uint64_t nr_18 = (uint64_t)(nr_9 << (nr_17 & UINT64_C(63)));\n    uint64_t nr_19 = (uint64_t)(nr_16 | nr_18);\n    uint64_t nr_20 = (uint64_t)(nr_19 & UINT64_C(0x00000000ffffffff));\n    return (uint64_t)(nr_20);\n}\n\nstatic uint64_t rewynth_observation_1(uint64_t x0, uint64_t x1) {\n    uint64_t nr_0 = (uint64_t)((uint64_t)x0 * (uint64_t)UINT64_C(0x5851f42d4c957f2d));\n    uint64_t nr_1 = (uint64_t)(nr_0 + x1);\n    return (uint64_t)(nr_1);\n}\n\nstatic uint64_t rewynth_observation_2(uint64_t x0, uint64_t x1) {\n    return (uint64_t)(x1);\n}\n\ntypedef struct { uint64_t result; uint64_t memory[2]; } rewynth_state;\nrewynth_state rewynth_transition(uint64_t x0, uint64_t x1) {\n    rewynth_state output;\n    output.result = rewynth_observation_0(x0, x1);\n    output.memory[0] = rewynth_observation_1(x0, x1);\n    output.memory[1] = rewynth_observation_2(x0, x1);\n    return output;\n}\n"
+  },
+  "lost_store_comparison": {
+    "kind": "verify",
+    "model": {
+      "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+      "function_sha256": "f1f11d9bed12b74c3de0d08c15bfe989080274b1acd58c4517099b1434f48987",
+      "symbol": "_pcg32_random_r",
+      "instructions": [
+        {
+          "address": "0x28",
+          "assembly": "mov x8, #0x7f2d",
+          "bytes_hex": "a8e58fd2"
+        },
+        {
+          "address": "0x2c",
+          "assembly": "movk x8, #0x4c95, lsl #16",
+          "bytes_hex": "a892a9f2"
+        },
+        {
+          "address": "0x30",
+          "assembly": "movk x8, #0xf42d, lsl #32",
+          "bytes_hex": "a885def2"
+        },
+        {
+          "address": "0x34",
+          "assembly": "movk x8, #0x5851, lsl #48",
+          "bytes_hex": "280aebf2"
+        },
+        {
+          "address": "0x38",
+          "assembly": "ldp x9, x10, [x0]",
+          "bytes_hex": "092840a9"
+        },
+        {
+          "address": "0x3c",
+          "assembly": "madd x8, x9, x8, x10",
+          "bytes_hex": "2829089b"
+        },
+        {
+          "address": "0x40",
+          "assembly": "str x8, [x0]",
+          "bytes_hex": "080000f9"
+        },
+        {
+          "address": "0x44",
+          "assembly": "lsr x8, x9, #0x2d",
+          "bytes_hex": "28fd6dd3"
+        },
+        {
+          "address": "0x48",
+          "assembly": "lsr x10, x9, #0x1b",
+          "bytes_hex": "2afd5bd3"
+        },
+        {
+          "address": "0x4c",
+          "assembly": "eor w8, w8, w10",
+          "bytes_hex": "08010a4a"
+        },
+        {
+          "address": "0x50",
+          "assembly": "lsr x9, x9, #0x3b",
+          "bytes_hex": "29fd7bd3"
+        },
+        {
+          "address": "0x54",
+          "assembly": "ror w0, w8, w9",
+          "bytes_hex": "002dc91a"
+        },
+        {
+          "address": "0x58",
+          "assembly": "ret",
+          "bytes_hex": "c0035fd6"
+        }
+      ],
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null,
+          null
+        ],
+        "memory": {
+          "argument": 0,
+          "words": 2,
+          "base_address": 4294967296,
+          "bytes": 16,
+          "byte_order": "little",
+          "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+          "post_state_scope": "entire declared region, including unchanged words",
+          "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+        },
+        "calls": "none; calls rejected",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 13,
+          "edges": 12,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
+        "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+        "logical_inputs": [
+          {
+            "index": 0,
+            "memory_offset": 0,
+            "width_bits": 64
+          },
+          {
+            "index": 1,
+            "memory_offset": 8,
+            "width_bits": 64
+          }
+        ]
+      }
+    },
+    "verification": {
+      "status": "sat",
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null,
+          null
+        ],
+        "memory": {
+          "argument": 0,
+          "words": 2,
+          "base_address": 4294967296,
+          "bytes": 16,
+          "byte_order": "little",
+          "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+          "post_state_scope": "entire declared region, including unchanged words",
+          "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+        },
+        "calls": "none; calls rejected",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 13,
+          "edges": 12,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
+        "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+        "logical_inputs": [
+          {
+            "index": 0,
+            "memory_offset": 0,
+            "width_bits": 64
+          },
+          {
+            "index": 1,
+            "memory_offset": 8,
+            "width_bits": 64
+          }
+        ]
+      },
+      "observations": [
+        "return",
+        "memory[0]",
+        "memory[1]"
+      ],
+      "counterexample": {
+        "inputs_u64": [
+          "0x2fedd67bd8000000",
+          "0xcc7d05711fffffff"
+        ],
+        "inputs_i64": [
+          "0x2fedd67bd8000000",
+          "-0x3382fa8ee0000001"
+        ],
+        "original_output_u64": 2951601536,
+        "candidate_output_u64": 2951601536,
+        "original_memory_u64": [
+          "0xc8e7e15e17ffffff",
+          "0xcc7d05711fffffff"
+        ],
+        "candidate_memory_u64": [
+          "0x2fedd67bd8000000",
+          "0xcc7d05711fffffff"
+        ],
+        "differences": [
+          "memory[0]"
+        ],
+        "trace": [
+          {
+            "address": "0x28",
+            "instruction": "mov x8, #0x7f2d",
+            "destination": "x8",
+            "value_u64": 32557
+          },
+          {
+            "address": "0x2c",
+            "instruction": "movk x8, #0x4c95, lsl #16",
+            "destination": "x8",
+            "value_u64": 1284865837
+          },
+          {
+            "address": "0x30",
+            "instruction": "movk x8, #0xf42d, lsl #32",
+            "destination": "x8",
+            "value_u64": 268475395571501
+          },
+          {
+            "address": "0x34",
+            "instruction": "movk x8, #0x5851, lsl #48",
+            "destination": "x8",
+            "value_u64": "0x5851f42d4c957f2d"
+          },
+          {
+            "kind": "memory_read",
+            "address": "0x38",
+            "instruction": "ldp x9, x10, [x0]",
+            "destination": "memory[0:8]",
+            "offset": 0,
+            "size_bytes": 8,
+            "value_u64": "0x2fedd67bd8000000"
+          },
+          {
+            "kind": "memory_read",
+            "address": "0x38",
+            "instruction": "ldp x9, x10, [x0]",
+            "destination": "memory[8:16]",
+            "offset": 8,
+            "size_bytes": 8,
+            "value_u64": "0xcc7d05711fffffff"
+          },
+          {
+            "address": "0x38",
+            "instruction": "ldp x9, x10, [x0]",
+            "destination": "x9",
+            "value_u64": "0x2fedd67bd8000000"
+          },
+          {
+            "address": "0x38",
+            "instruction": "ldp x9, x10, [x0]",
+            "destination": "x10",
+            "value_u64": "0xcc7d05711fffffff"
+          },
+          {
+            "address": "0x3c",
+            "instruction": "madd x8, x9, x8, x10",
+            "destination": "x8",
+            "value_u64": "0xc8e7e15e17ffffff"
+          },
+          {
+            "kind": "memory_write",
+            "address": "0x40",
+            "instruction": "str x8, [x0]",
+            "destination": "memory[0:8]",
+            "offset": 0,
+            "size_bytes": 8,
+            "value_u64": "0xc8e7e15e17ffffff"
+          },
+          {
+            "address": "0x44",
+            "instruction": "lsr x8, x9, #0x2d",
+            "destination": "x8",
+            "value_u64": 98158
+          },
+          {
+            "address": "0x48",
+            "instruction": "lsr x10, x9, #0x1b",
+            "destination": "x10",
+            "value_u64": 25731714939
+          },
+          {
+            "address": "0x4c",
+            "instruction": "eor w8, w8, w10",
+            "destination": "w8",
+            "value_u64": 4256935957
+          },
+          {
+            "address": "0x50",
+            "instruction": "lsr x9, x9, #0x3b",
+            "destination": "x9",
+            "value_u64": 5
+          },
+          {
+            "address": "0x54",
+            "instruction": "ror w0, w8, w9",
+            "destination": "w0",
+            "value_u64": 2951601536
+          },
+          {
+            "kind": "return",
+            "address": "0x58",
+            "instruction": "ret",
+            "destination": "x0",
+            "value_u64": 2951601536
+          }
+        ]
+      }
+    },
+    "expression": "{\n  \"return\": \"t0 = (((((((x0 >> 45) >> 0) & 0x00000000ffffffff) ^ (((x0 >> 27) >> 0) & 0x00000000ffffffff)) & 0x00000000ffffffff) >> 0) & 0x00000000ffffffff)\\nt1 = ((((((x0 >> 59) >> 0) & 0x00000000ffffffff) & 31) & 0x00000000ffffffff) & 31)\\n(((t0 >> t1) | (t0 << (32 - t1))) & 0x00000000ffffffff)\",\n  \"memory\": [\n    \"x0\",\n    \"x1\"\n  ]\n}",
+    "source": "/* Pure transition: logical inputs are original scalars then initial memory words.\n   All declared post-state words and architectural X0 are returned.\n   This is reconstructed model source, not the original pointer ABI. */\n#include <stdint.h>\n#include <stdbool.h>\n\nstatic uint64_t rewynth_observation_0(uint64_t x0, uint64_t x1) {\n    uint64_t nr_0 = (uint64_t)(x0 >> (UINT64_C(0x000000000000002d) & UINT64_C(63)));\n    uint64_t nr_1 = (uint64_t)(nr_0 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_2 = (uint64_t)(nr_1 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_3 = (uint64_t)(x0 >> (UINT64_C(0x000000000000001b) & UINT64_C(63)));\n    uint64_t nr_4 = (uint64_t)(nr_3 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_5 = (uint64_t)(nr_4 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_6 = (uint64_t)(nr_2 ^ nr_5);\n    uint64_t nr_7 = (uint64_t)(nr_6 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_8 = (uint64_t)(nr_7 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_9 = (uint64_t)(nr_8 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_10 = (uint64_t)(x0 >> (UINT64_C(0x000000000000003b) & UINT64_C(63)));\n    uint64_t nr_11 = (uint64_t)(nr_10 >> (UINT64_C(0x0000000000000000) & UINT64_C(63)));\n    uint64_t nr_12 = (uint64_t)(nr_11 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_13 = (uint64_t)(nr_12 & UINT64_C(0x000000000000001f));\n    uint64_t nr_14 = (uint64_t)(nr_13 & UINT64_C(0x00000000ffffffff));\n    uint64_t nr_15 = (uint64_t)(nr_14 & UINT64_C(0x000000000000001f));\n    uint64_t nr_16 = (uint64_t)(nr_9 >> (nr_15 & UINT64_C(63)));\n    uint64_t nr_17 = (uint64_t)(UINT64_C(0x0000000000000020) - nr_15);\n    uint64_t nr_18 = (uint64_t)(nr_9 << (nr_17 & UINT64_C(63)));\n    uint64_t nr_19 = (uint64_t)(nr_16 | nr_18);\n    uint64_t nr_20 = (uint64_t)(nr_19 & UINT64_C(0x00000000ffffffff));\n    return (uint64_t)(nr_20);\n}\n\nstatic uint64_t rewynth_observation_1(uint64_t x0, uint64_t x1) {\n    return (uint64_t)(x0);\n}\n\nstatic uint64_t rewynth_observation_2(uint64_t x0, uint64_t x1) {\n    return (uint64_t)(x1);\n}\n\ntypedef struct { uint64_t result; uint64_t memory[2]; } rewynth_state;\nrewynth_state rewynth_transition(uint64_t x0, uint64_t x1) {\n    rewynth_state output;\n    output.result = rewynth_observation_0(x0, x1);\n    output.memory[0] = rewynth_observation_1(x0, x1);\n    output.memory[1] = rewynth_observation_2(x0, x1);\n    return output;\n}\n"
+  },
+  "first_call": {
+    "kind": "evaluate",
+    "model": {
+      "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+      "function_sha256": "f1f11d9bed12b74c3de0d08c15bfe989080274b1acd58c4517099b1434f48987",
+      "symbol": "_pcg32_random_r",
+      "instructions": [
+        {
+          "address": "0x28",
+          "assembly": "mov x8, #0x7f2d",
+          "bytes_hex": "a8e58fd2"
+        },
+        {
+          "address": "0x2c",
+          "assembly": "movk x8, #0x4c95, lsl #16",
+          "bytes_hex": "a892a9f2"
+        },
+        {
+          "address": "0x30",
+          "assembly": "movk x8, #0xf42d, lsl #32",
+          "bytes_hex": "a885def2"
+        },
+        {
+          "address": "0x34",
+          "assembly": "movk x8, #0x5851, lsl #48",
+          "bytes_hex": "280aebf2"
+        },
+        {
+          "address": "0x38",
+          "assembly": "ldp x9, x10, [x0]",
+          "bytes_hex": "092840a9"
+        },
+        {
+          "address": "0x3c",
+          "assembly": "madd x8, x9, x8, x10",
+          "bytes_hex": "2829089b"
+        },
+        {
+          "address": "0x40",
+          "assembly": "str x8, [x0]",
+          "bytes_hex": "080000f9"
+        },
+        {
+          "address": "0x44",
+          "assembly": "lsr x8, x9, #0x2d",
+          "bytes_hex": "28fd6dd3"
+        },
+        {
+          "address": "0x48",
+          "assembly": "lsr x10, x9, #0x1b",
+          "bytes_hex": "2afd5bd3"
+        },
+        {
+          "address": "0x4c",
+          "assembly": "eor w8, w8, w10",
+          "bytes_hex": "08010a4a"
+        },
+        {
+          "address": "0x50",
+          "assembly": "lsr x9, x9, #0x3b",
+          "bytes_hex": "29fd7bd3"
+        },
+        {
+          "address": "0x54",
+          "assembly": "ror w0, w8, w9",
+          "bytes_hex": "002dc91a"
+        },
+        {
+          "address": "0x58",
+          "assembly": "ret",
+          "bytes_hex": "c0035fd6"
+        }
+      ],
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null,
+          null
+        ],
+        "memory": {
+          "argument": 0,
+          "words": 2,
+          "base_address": 4294967296,
+          "bytes": 16,
+          "byte_order": "little",
+          "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+          "post_state_scope": "entire declared region, including unchanged words",
+          "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+        },
+        "calls": "none; calls rejected",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 13,
+          "edges": 12,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
+        "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+        "logical_inputs": [
+          {
+            "index": 0,
+            "memory_offset": 0,
+            "width_bits": 64
+          },
+          {
+            "index": 1,
+            "memory_offset": 8,
+            "width_bits": 64
+          }
+        ]
+      }
+    },
+    "witness": {
+      "inputs_u64": [
+        "0x853c49e6748fea9b",
+        "0xda3e39cb94b95bdb"
+      ],
+      "inputs_i64": [
+        "-0x7ac3b6198b701565",
+        "-0x25c1c6346b46a425"
+      ],
+      "output_u64": 355248013,
+      "trace": [
+        {
+          "address": "0x28",
+          "instruction": "mov x8, #0x7f2d",
+          "destination": "x8",
+          "value_u64": 32557
+        },
+        {
+          "address": "0x2c",
+          "instruction": "movk x8, #0x4c95, lsl #16",
+          "destination": "x8",
+          "value_u64": 1284865837
+        },
+        {
+          "address": "0x30",
+          "instruction": "movk x8, #0xf42d, lsl #32",
+          "destination": "x8",
+          "value_u64": 268475395571501
+        },
+        {
+          "address": "0x34",
+          "instruction": "movk x8, #0x5851, lsl #48",
+          "destination": "x8",
+          "value_u64": "0x5851f42d4c957f2d"
+        },
+        {
+          "kind": "memory_read",
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "memory[0:8]",
+          "offset": 0,
+          "size_bytes": 8,
+          "value_u64": "0x853c49e6748fea9b"
+        },
+        {
+          "kind": "memory_read",
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "memory[8:16]",
+          "offset": 8,
+          "size_bytes": 8,
+          "value_u64": "0xda3e39cb94b95bdb"
+        },
+        {
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "x9",
+          "value_u64": "0x853c49e6748fea9b"
+        },
+        {
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "x10",
+          "value_u64": "0xda3e39cb94b95bdb"
+        },
+        {
+          "address": "0x3c",
+          "instruction": "madd x8, x9, x8, x10",
+          "destination": "x8",
+          "value_u64": "0xc83015ca079f7e1a"
+        },
+        {
+          "kind": "memory_write",
+          "address": "0x40",
+          "instruction": "str x8, [x0]",
+          "destination": "memory[0:8]",
+          "offset": 0,
+          "size_bytes": 8,
+          "value_u64": "0xc83015ca079f7e1a"
+        },
+        {
+          "address": "0x44",
+          "instruction": "lsr x8, x9, #0x2d",
+          "destination": "x8",
+          "value_u64": 272866
+        },
+        {
+          "address": "0x48",
+          "instruction": "lsr x10, x9, #0x1b",
+          "destination": "x10",
+          "value_u64": 71530265806
+        },
+        {
+          "address": "0x4c",
+          "instruction": "eor w8, w8, w10",
+          "destination": "w8",
+          "value_u64": 2811041068
+        },
+        {
+          "address": "0x50",
+          "instruction": "lsr x9, x9, #0x3b",
+          "destination": "x9",
+          "value_u64": 16
+        },
+        {
+          "address": "0x54",
+          "instruction": "ror w0, w8, w9",
+          "destination": "w0",
+          "value_u64": 355248013
+        },
+        {
+          "kind": "return",
+          "address": "0x58",
+          "instruction": "ret",
+          "destination": "x0",
+          "value_u64": 355248013
+        }
+      ],
+      "memory_u64": [
+        "0xc83015ca079f7e1a",
+        "0xda3e39cb94b95bdb"
+      ]
+    }
+  },
+  "second_call": {
+    "kind": "evaluate",
+    "model": {
+      "artifact_sha256": "ace691f7e16518d363ed0582d7a6ab9ee54c2818014b955b2ee886bf31bc556f",
+      "function_sha256": "f1f11d9bed12b74c3de0d08c15bfe989080274b1acd58c4517099b1434f48987",
+      "symbol": "_pcg32_random_r",
+      "instructions": [
+        {
+          "address": "0x28",
+          "assembly": "mov x8, #0x7f2d",
+          "bytes_hex": "a8e58fd2"
+        },
+        {
+          "address": "0x2c",
+          "assembly": "movk x8, #0x4c95, lsl #16",
+          "bytes_hex": "a892a9f2"
+        },
+        {
+          "address": "0x30",
+          "assembly": "movk x8, #0xf42d, lsl #32",
+          "bytes_hex": "a885def2"
+        },
+        {
+          "address": "0x34",
+          "assembly": "movk x8, #0x5851, lsl #48",
+          "bytes_hex": "280aebf2"
+        },
+        {
+          "address": "0x38",
+          "assembly": "ldp x9, x10, [x0]",
+          "bytes_hex": "092840a9"
+        },
+        {
+          "address": "0x3c",
+          "assembly": "madd x8, x9, x8, x10",
+          "bytes_hex": "2829089b"
+        },
+        {
+          "address": "0x40",
+          "assembly": "str x8, [x0]",
+          "bytes_hex": "080000f9"
+        },
+        {
+          "address": "0x44",
+          "assembly": "lsr x8, x9, #0x2d",
+          "bytes_hex": "28fd6dd3"
+        },
+        {
+          "address": "0x48",
+          "assembly": "lsr x10, x9, #0x1b",
+          "bytes_hex": "2afd5bd3"
+        },
+        {
+          "address": "0x4c",
+          "assembly": "eor w8, w8, w10",
+          "bytes_hex": "08010a4a"
+        },
+        {
+          "address": "0x50",
+          "assembly": "lsr x9, x9, #0x3b",
+          "bytes_hex": "29fd7bd3"
+        },
+        {
+          "address": "0x54",
+          "assembly": "ror w0, w8, w9",
+          "bytes_hex": "002dc91a"
+        },
+        {
+          "address": "0x58",
+          "assembly": "ret",
+          "bytes_hex": "c0035fd6"
+        }
+      ],
+      "assumptions": {
+        "architecture": "ARM64",
+        "word_bits": 64,
+        "argument_registers": [
+          "x0"
+        ],
+        "return_register": "x0",
+        "domain": [
+          null,
+          null
+        ],
+        "memory": {
+          "argument": 0,
+          "words": 2,
+          "base_address": 4294967296,
+          "bytes": 16,
+          "byte_order": "little",
+          "address_scope": "one fixed synthetic base; only concrete in-bounds accesses",
+          "post_state_scope": "entire declared region, including unchanged words",
+          "comparison_scope": "joint return and every declared post-state word; scalar-only proof operations refused"
+        },
+        "calls": "none; calls rejected",
+        "loops": "none; cyclic control flow rejected",
+        "control_flow": {
+          "kind": "acyclic_direct",
+          "instructions": 13,
+          "edges": 12,
+          "branches": 0,
+          "returns": 1,
+          "backward_edges": 0,
+          "instruction_limit": 128,
+          "edge_limit": 256
+        },
+        "proof_scope": "equality only for explicitly compared return/state outputs in the implemented ISA model; not a formally verified CPU semantics",
+        "logical_inputs": [
+          {
+            "index": 0,
+            "memory_offset": 0,
+            "width_bits": 64
+          },
+          {
+            "index": 1,
+            "memory_offset": 8,
+            "width_bits": 64
+          }
+        ]
+      }
+    },
+    "witness": {
+      "inputs_u64": [
+        "0xc83015ca079f7e1a",
+        "0xda3e39cb94b95bdb"
+      ],
+      "inputs_i64": [
+        "-0x37cfea35f86081e6",
+        "-0x25c1c6346b46a425"
+      ],
+      "output_u64": 41705475,
+      "trace": [
+        {
+          "address": "0x28",
+          "instruction": "mov x8, #0x7f2d",
+          "destination": "x8",
+          "value_u64": 32557
+        },
+        {
+          "address": "0x2c",
+          "instruction": "movk x8, #0x4c95, lsl #16",
+          "destination": "x8",
+          "value_u64": 1284865837
+        },
+        {
+          "address": "0x30",
+          "instruction": "movk x8, #0xf42d, lsl #32",
+          "destination": "x8",
+          "value_u64": 268475395571501
+        },
+        {
+          "address": "0x34",
+          "instruction": "movk x8, #0x5851, lsl #48",
+          "destination": "x8",
+          "value_u64": "0x5851f42d4c957f2d"
+        },
+        {
+          "kind": "memory_read",
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "memory[0:8]",
+          "offset": 0,
+          "size_bytes": 8,
+          "value_u64": "0xc83015ca079f7e1a"
+        },
+        {
+          "kind": "memory_read",
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "memory[8:16]",
+          "offset": 8,
+          "size_bytes": 8,
+          "value_u64": "0xda3e39cb94b95bdb"
+        },
+        {
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "x9",
+          "value_u64": "0xc83015ca079f7e1a"
+        },
+        {
+          "address": "0x38",
+          "instruction": "ldp x9, x10, [x0]",
+          "destination": "x10",
+          "value_u64": "0xda3e39cb94b95bdb"
+        },
+        {
+          "address": "0x3c",
+          "instruction": "madd x8, x9, x8, x10",
+          "destination": "x8",
+          "value_u64": "0xbfcf03ed28736c6d"
+        },
+        {
+          "kind": "memory_write",
+          "address": "0x40",
+          "instruction": "str x8, [x0]",
+          "destination": "memory[0:8]",
+          "offset": 0,
+          "size_bytes": 8,
+          "value_u64": "0xbfcf03ed28736c6d"
+        },
+        {
+          "address": "0x44",
+          "instruction": "lsr x8, x9, #0x2d",
+          "destination": "x8",
+          "value_u64": 409984
+        },
+        {
+          "address": "0x48",
+          "instruction": "lsr x10, x9, #0x1b",
+          "destination": "x10",
+          "value_u64": 107475024192
+        },
+        {
+          "address": "0x4c",
+          "instruction": "eor w8, w8, w10",
+          "destination": "w8",
+          "value_u64": 100989120
+        },
+        {
+          "address": "0x50",
+          "instruction": "lsr x9, x9, #0x3b",
+          "destination": "x9",
+          "value_u64": 25
+        },
+        {
+          "address": "0x54",
+          "instruction": "ror w0, w8, w9",
+          "destination": "w0",
+          "value_u64": 41705475
+        },
+        {
+          "kind": "return",
+          "address": "0x58",
+          "instruction": "ret",
+          "destination": "x0",
+          "value_u64": 41705475
+        }
+      ],
+      "memory_u64": [
+        "0xbfcf03ed28736c6d",
+        "0xda3e39cb94b95bdb"
+      ]
+    }
+  }
+}
